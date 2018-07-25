@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2015
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discretization", "Discretization\Discretization.csproj", "{82FADE40-9DB5-42A8-9301-8CC620407D77}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discretization", "Discretization\Discretization.csproj", "{82FADE40-9DB5-42A8-9301-8CC620407D77}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestingConsole", "TestingConsole\TestingConsole.csproj", "{50D2920A-0EBA-4205-8F42-B78A0B0441AD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{82FADE40-9DB5-42A8-9301-8CC620407D77}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82FADE40-9DB5-42A8-9301-8CC620407D77}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{82FADE40-9DB5-42A8-9301-8CC620407D77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50D2920A-0EBA-4205-8F42-B78A0B0441AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50D2920A-0EBA-4205-8F42-B78A0B0441AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50D2920A-0EBA-4205-8F42-B78A0B0441AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50D2920A-0EBA-4205-8F42-B78A0B0441AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
