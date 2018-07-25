@@ -2,21 +2,21 @@
 
 namespace Discretization
 {
-    public class Bin
+    public class Bin : IComparable
     {
         //Properties
         int BinID { get; set; }
         int Count { get; set; }
         double Sum { get; set; }
         double SquareSum { get; set; }
-        double Average {
+        public double Average {
             get
             {
                 //Check for divide by zero
                 if (Count <= 0)
                     return 0;
 
-                return Sum/Count;
+                return Sum / Count;
             }
         }
         double StandardDeviation
@@ -29,16 +29,35 @@ namespace Discretization
 
                 //Compute standard deviation (N-1)
                 double numerator = (SquareSum) + (-2 * Average * Sum) + (Count * Math.Pow(Average, 2));
-                double denominator = Count-1;
+                double denominator = Count - 1;
                 return Math.Sqrt(numerator / denominator);
             }
         }
 
         //Properties - Range
-        double Low { get; set; }
-        double High { get; set; }
-        double NumStandardDeviations { get; set; }
+        /// <summary>
+        /// The lowest allowed value to be assigned to this bin. (inclusive)
+        /// </summary>
+        public double Low { get; private set; }
+        /// <summary>
+        /// The maximum value allowed to be assigned to this bin. (exclusive).
+        /// </summary>
+        public double High { get; private set; }
+        /// <summary>
+        /// Defines the accuracy requirement for values considered out of tolerance. A higher value means a larger
+        /// window around the average will be accepted as in tolerance.
+        /// 1 Standard Deviation  => 68.3%
+        /// 2 Standard Deviations => 95.5%
+        /// 3 Standard Deviations => 99.7%
+        /// 4 Standard Deviations => 99.9%
+        /// </summary>
+        public double NumStandardDeviations { get; set; }
+        /// <summary>
+        /// The number of values that have been assigned to this bin but were not within
+        /// the accepted tolerance range (number of standard deviations).
+        /// </summary>
         int CountOutTolerance { get; set; }
+        int CountInTolerance { get; set; }
 
         //Constructors
         public Bin() : this(double.NegativeInfinity, double.PositiveInfinity) { }
@@ -46,6 +65,7 @@ namespace Discretization
         {
             this.Low = low;
             this.High = high;
+            this.NumStandardDeviations = 1;
         }
 
         //Methods
@@ -59,9 +79,27 @@ namespace Discretization
             //Check if in tolerance
             double differance = Math.Abs(value - Average);
             double distance = differance / this.StandardDeviation;
-            if (distance > this.NumStandardDeviations)
-                CountOutTolerance += 1;
+            if (distance < this.NumStandardDeviations)
+                this.CountInTolerance += 1;
+            else
+                this.CountOutTolerance += 1;
+        }
+        public bool ShouldSplit()
+        {
+            //If more values have been experienced out of the tolerance area, this bin should be split.
+            return (this.CountOutTolerance > 2 * this.CountInTolerance);
+        }
 
+        //Debug
+        public override string ToString()
+        {
+            return string.Format("Avg:{0:N2} \tLow:{1:N2} \tHigh:{2:N2}", this.Average, this.Low, this.High);
+        }
+
+        //Icomparable
+        public int CompareTo(object obj)
+        {
+            return this.Average.CompareTo(obj);
         }
     }
 }
