@@ -27,11 +27,20 @@ namespace TestingConsole
                 }
             }
 
-            //Add values to discretizer;
-            foreach(double x in x_noisy)
-            {
+            //Add all values to the discretizer
+            foreach (double x in x_noisy)
                 disc.GetBin(x);
-            }
+
+            ////Add values to discretizer.
+            //List<int> numBins = new List<int>();
+            //for (int pass = 0; pass < 10; pass++)
+            //{
+            //    //Add all values to the discretizer
+            //    foreach (double x in x_noisy)
+            //        disc.GetBin(x);
+            //    //Count how many bins there are
+            //    numBins.Add(disc.Bins.Count);
+            //}
 
             var bins = disc.Bins.OrderBy(b => b.Average).ToList();
 
