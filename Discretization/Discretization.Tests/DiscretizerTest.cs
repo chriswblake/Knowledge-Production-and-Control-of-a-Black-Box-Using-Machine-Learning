@@ -136,35 +136,9 @@ namespace Discretization.Tests
         [Fact]
         public void GetBin_100RepeatedNoisyValues_102Bins()
         {
-            //Values to generate from
-            var x_source = Enumerable.Range(0, 100).ToArray();
-
-            //Create list of values with noise
-            Random rand = new Random();
-            double noise = 0.01;
-            List<double> x_noisy = new List<double>();
-            for (int i = 0; i < 100; i++)
-            {
-                foreach (int x in x_source)
-                {
-                    //Generate random number with a flat distribution
-                    //double relNoise = 2 * noise * rand.NextDouble();
-                    //x_noisy.Add((x - noise) + relNoise);
-
-                    //Generate random number with rough gaussian distribution
-                    double u1 = 1.0 - rand.NextDouble(); //uniform(0,1] random doubles
-                    double u2 = 1.0 - rand.NextDouble();
-                    double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2); //random normal(0,1)
-
-                    //Pick Sign
-                    double sign = 1;
-                    if (rand.NextDouble() < 0.5)
-                        sign = -1;
-                    //Create Point
-                    x_noisy.Add(x + sign * randStdNormal * noise);
-                }
-            }
-            
+            //Generated noisy values between ]
+            List<int> crispValues = Enumerable.Range(0, 100).ToList();
+            List<double> x_noisy = GenerateNoisyData(crispValues, 0.01, 100);
 
             //Add all values to the discretizer
             Discretizer disc = new Discretizer();
@@ -179,16 +153,31 @@ namespace Discretization.Tests
         public void GetBin_BinaryRepeatedNoisyValues_4Bins()
         {
             //Values to generate from
-            //var x_source = Enumerable.Range(0, 100).ToArray();
-            var x_source = new double[2] {0, 5};
+            List<double> x_noisy = GenerateNoisyData(new List<double> {0, 5}, 0.01, 100);
 
+            //Add all values to the discretizer
+            Discretizer disc = new Discretizer();
+            for (int i = 0; i < 5; i++)
+                foreach (double x in x_noisy)
+                    disc.GetBin(x);
+
+            //Check
+            Assert.Equal(4, disc.Bins.Count); //Ideally 102, but there is a randomization factor so it may occasionally go higher or lower.
+        }
+
+
+        public List<double> GenerateNoisyData(List<int> origValues, double maxNoise, int numPerOrigValue)
+        {
+            return GenerateNoisyData(origValues.ConvertAll<double>(x => (double)x), maxNoise, numPerOrigValue);
+        }
+        public List<double> GenerateNoisyData(List<double> origValues, double maxNoise, int numPerOrigValue)
+        {
             //Create list of values with noise
             Random rand = new Random();
-            double noise = 0.01;
             List<double> x_noisy = new List<double>();
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < numPerOrigValue; i++)
             {
-                foreach (int x in x_source)
+                foreach (double x in origValues)
                 {
                     //Generate random number with a flat distribution
                     //double relNoise = 2 * noise * rand.NextDouble();
@@ -204,19 +193,11 @@ namespace Discretization.Tests
                     if (rand.NextDouble() < 0.5)
                         sign = -1;
                     //Create Point
-                    x_noisy.Add(x + sign * randStdNormal * noise);
+                    x_noisy.Add(x + sign * randStdNormal * maxNoise);
                 }
             }
 
-
-            //Add all values to the discretizer
-            Discretizer disc = new Discretizer();
-            for (int i = 0; i < 5; i++)
-                foreach (double x in x_noisy)
-                    disc.GetBin(x);
-
-            //Check
-            Assert.Equal(4, disc.Bins.Count); //Ideally 102, but there is a randomization factor so it may occasionally go higher or lower.
+            return x_noisy;
         }
     }
 }
