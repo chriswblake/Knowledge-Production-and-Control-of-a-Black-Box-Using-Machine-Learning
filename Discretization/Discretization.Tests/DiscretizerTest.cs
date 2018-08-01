@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Xunit;
 
@@ -138,12 +139,12 @@ namespace Discretization.Tests
         {
             //Generated noisy values between ]
             List<int> crispValues = Enumerable.Range(0, 100).ToList();
-            List<double> x_noisy = GenerateNoisyData(crispValues, 0.01, 100);
+            List<double> x_noisy = GenerateNoisyData(crispValues, 0.1, 100);
 
             //Add all values to the discretizer
             Discretizer disc = new Discretizer();
-            for(int i =0; i<5; i++)
-                foreach (double x in x_noisy)
+            for(int i =0; i<10; i++)
+              foreach (double x in x_noisy)
                     disc.GetBin(x);
 
             //Check
@@ -179,25 +180,22 @@ namespace Discretization.Tests
             {
                 foreach (double x in origValues)
                 {
-                    //Generate random number with a flat distribution
-                    //double relNoise = 2 * noise * rand.NextDouble();
-                    //x_noisy.Add((x - noise) + relNoise);
-
-                    //Generate random number with rough gaussian distribution
-                    double u1 = 1.0 - rand.NextDouble(); //uniform(0,1] random doubles
-                    double u2 = 1.0 - rand.NextDouble();
-                    double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2); //random normal(0,1)
-
-                    //Pick Sign
-                    double sign = 1;
-                    if (rand.NextDouble() < 0.5)
-                        sign = -1;
-                    //Create Point
-                    x_noisy.Add(x + sign * randStdNormal * maxNoise);
+                    double factor = SampleGaussian(rand, 0, 1.0/6.0); //Generates a value between 0 and 1. We know that 6 sigma covers 99.999999% of values. So, 1/6 means 0 to 1.
+                    x_noisy.Add(x+ factor*maxNoise);
                 }
             }
 
             return x_noisy;
+        }
+        public static double SampleGaussian(Random random, double mean, double stddev)
+        {
+            // The method requires sampling from a uniform random of (0,1]
+            // but Random.NextDouble() returns a sample of [0,1).
+            double x1 = 1 - random.NextDouble();
+            double x2 = 1 - random.NextDouble();
+
+            double y1 = Math.Sqrt(-2.0 * Math.Log(x1)) * Math.Cos(2.0 * Math.PI * x2);
+            return y1 * stddev + mean;
         }
     }
 }
