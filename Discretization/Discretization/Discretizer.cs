@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace Discretization
 {
@@ -8,6 +9,12 @@ namespace Discretization
     {
         //Properties
         public List<Bin> Bins = new List<Bin>();
+        public List<Bin> BinsOrderedByLow {
+            get
+            {
+                return this.Bins.OrderBy(p => p.Low).ToList();
+            }
+        }
 
         //Constuctors
         public Discretizer()
@@ -33,24 +40,39 @@ namespace Discretization
                     break;
                 case BinAction.SplitAtNegNSigma:
                     { 
-                    double splitPoint = theBin.Average - 1.05 * theBin.NumStandardDeviations * theBin.StandardDeviation;
-                    SplitBin(theBin, splitPoint);
+                        double splitPoint = theBin.Average - 1.05 * theBin.NumStandardDeviations * theBin.StandardDeviation;
+                        SplitBin(theBin, splitPoint);
                     }
                     break;
                 case BinAction.SplitAtPosNSigma:
                     { 
-                    double splitPoint = theBin.Average + 1.05 * theBin.NumStandardDeviations * theBin.StandardDeviation;
-                    SplitBin(theBin, splitPoint);
+                        double splitPoint = theBin.Average + 1.05 * theBin.NumStandardDeviations * theBin.StandardDeviation;
+                        SplitBin(theBin, splitPoint);
                     }
                     break;
-
                 case BinAction.MergeHigh:
-                    Bin binHigh = Bins.Find(p => p.Low == theBin.High);
-                    MergeBins(theBin, binHigh);
+                    { 
+                        //Find the next highest bin
+                        Bin binHigh = Bins.Find(p => p.Low == theBin.High);
+                        //Keep the statistics if merging with one of the end bin (the bins with infinity as a high).
+                        bool keepStatistics = false;
+                        if (binHigh.High == double.PositiveInfinity)
+                            keepStatistics = true;
+                        //Merge the bins
+                        MergeBins(theBin, binHigh, keepStatistics);
+                    }
                     break;
                 case BinAction.MergeLow:
-                    Bin binLow = Bins.Find(p => p.High == theBin.Low);
-                    MergeBins(binLow, theBin);
+                    { 
+                        //Find the next lowest bin
+                        Bin binLow = Bins.Find(p => p.High == theBin.Low);
+                        //Keep the statistics if merging with one of the end bin (the bins with infinity as a high).
+                        bool keepStatistics = false;
+                        if (binLow.Low == double.NegativeInfinity)
+                            keepStatistics = true;
+                        //Merge the bins
+                        MergeBins(binLow, theBin, keepStatistics);
+                    }
                     break;
             }
 
@@ -126,6 +148,10 @@ namespace Discretization
         }
         public Bin MergeBins(Bin bin1, Bin bin2)
         {
+            return MergeBins(bin1, bin2, false);
+        }
+        public Bin MergeBins(Bin bin1, Bin bin2, bool keepStatistics)
+        {
             //Get new settings for bin
             double newLow = Math.Min(bin1.Low, bin2.Low);
             double newHigh = Math.Max(bin1.High, bin2.High);
@@ -136,10 +162,13 @@ namespace Discretization
             Bin combinedBin = new Bin(newLow, newHigh, newStdDev) { MinPointsForAction = newMinPointsForAction };
 
             //Combine data
-            combinedBin.Count = bin1.Count + bin2.Count;
-            combinedBin.Sum = bin1.Sum + bin2.Sum;
-            combinedBin.SquareSum = bin1.SquareSum + bin2.SquareSum;
-            
+            if(keepStatistics)
+            {
+                combinedBin.Count = bin1.Count + bin2.Count;
+                //combinedBin.Count1StdDev = bin1.Count1StdDev + bin2.Count1StdDev;
+                combinedBin.Sum = bin1.Sum + bin2.Sum;
+                combinedBin.SquareSum = bin1.SquareSum + bin2.SquareSum;
+            }
             //Update Bins list
             Bins.Remove(bin1);
             Bins.Remove(bin2);

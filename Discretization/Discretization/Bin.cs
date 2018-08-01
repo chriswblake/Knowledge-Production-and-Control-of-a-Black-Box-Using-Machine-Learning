@@ -197,6 +197,7 @@ namespace Discretization
             if (this.Count > 10000)
             {
                 this.Count = this.Count / 10;
+                this.Count1StdDev = this.Count1StdDev / 10;
                 this.Sum = this.Sum / 10;
                 this.SquareSum = this.SquareSum / 100;
             }
@@ -214,10 +215,11 @@ namespace Discretization
             double nSigmaHigh = this.Average + NumStandardDeviations * StandardDeviation;
 
             //No Action: If both ends within the bin range.
-            if(this.Low != double.NegativeInfinity && this.High != double.PositiveInfinity)
+            if (this.Low != double.NegativeInfinity && this.High != double.PositiveInfinity)
                 if (nSigmaLow > this.Low && nSigmaHigh < this.High)
-                    return BinAction.None;
-            
+                    if (Percent1StdDev > 0.681)
+                        return BinAction.None;
+
 
             //Split: If both ends are outside the bin range.
             if (nSigmaLow < this.Low && nSigmaHigh > this.High)
@@ -228,8 +230,13 @@ namespace Discretization
             //Split: -NSigma is above low and high is +inf
             if (nSigmaLow > this.Low && this.High == double.PositiveInfinity)
                 return BinAction.SplitAtPosNSigma;
+
+
+            //Split: Too many points included
+            if (Percent1StdDev > 0.90) //Ideally this should be 68.1% since it is looking for a gaussian distribution.
+                return BinAction.SplitAtAvg;
             //Split: Distribution is too flat.
-            if (Percent1StdDev < 0.50) //Ideally this should be 68.1% since it is looking for a gaussian distribution.
+            if (Percent1StdDev < 0.60) //Ideally this should be 68.1% since it is looking for a gaussian distribution.
                 return BinAction.SplitAtAvg;
 
 
@@ -241,7 +248,6 @@ namespace Discretization
                 return BinAction.MergeLow;
 
 
-
             //This should never occur
             return BinAction.Undecided;
         }
@@ -249,7 +255,30 @@ namespace Discretization
         //Debug
         public override string ToString()
         {
-            return string.Format("Low:{0:N2} \tHigh:{1:N2} \tAvg:{2:N2} \t-NSimga:{3:N2} \t+NSigma:{4:N2} \tCount:{5:N2}", this.Low, this.High, this.Average, this.AvgMinusNSigma, this.AvgPlusNSigma, this.Count);
+            string s = "";
+            
+            //Add low and lower sigma
+            if (this.Low <= this.AvgMinusNSigma)
+                s += string.Format("[{0:N2} ({1:N2})", this.Low, this.AvgMinusNSigma);
+            else
+                s += string.Format("({0:N2}) [{1:N2}", this.AvgMinusNSigma, this.Low);
+
+            //Add the average
+            s += string.Format(", |{0:N2}|, ", this.Average);
+
+            //Add high and upper sigma
+            if (this.AvgPlusNSigma <= this.High)
+                s += string.Format("({0:N2}) {1:N2}]", this.AvgPlusNSigma, this.High);
+            else
+                s += string.Format("{0:N2}] ({1:N2})", this.High, this.AvgPlusNSigma);
+
+            //Add action
+            //s = s + " ==> "+ PickAction().ToString();
+
+            //BinCount
+            s += string.Format(" [{0}]", this.Count);
+            //s += string.Format(" [{0:N1}]", this.Percent1StdDev);
+            return s;// string.Format("({0:N3}{3:N3}) \t|{1:N3}| \t({4:N3}){2:N3}({4:N3}) (-NStdDev)Low|Avg|High(+NStdDev) \tCount:{5:N2}", this.Low, this.Average, this.High, this.AvgMinusNSigma, this.AvgPlusNSigma, this.Count);
         }
     }
 
