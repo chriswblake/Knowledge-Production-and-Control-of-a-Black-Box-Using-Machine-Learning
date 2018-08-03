@@ -13,7 +13,7 @@ namespace Discretization.Tests
         {
             Discretizer disc = new Discretizer();
             disc.Bins.Clear();
-            Bin bin1 = new Bin(double.NegativeInfinity,-10, 3);
+            Bin bin1 = new Bin(double.NegativeInfinity, -10, 3);
             Bin bin2 = new Bin(-10, 10, 3);
             Bin bin3 = new Bin(10, double.PositiveInfinity, 3);
             bin2.AddValues(new List<double> {
@@ -106,7 +106,7 @@ namespace Discretization.Tests
             Discretizer disc = new Discretizer();
             disc.Bins.Clear();
             Bin bin1 = new Bin(double.NegativeInfinity, 0, 3);
-            Bin bin2 = new Bin(0, 2.5, 3);          
+            Bin bin2 = new Bin(0, 2.5, 3);
             Bin bin3 = new Bin(2.5, double.PositiveInfinity, 3);
             bin2.AddValues(new List<double> {
                 2,
@@ -121,52 +121,70 @@ namespace Discretization.Tests
                 4,
             });
             bin3.MinPointsForAction = 3;
-            disc.Bins.AddRange(new List<Bin> {bin1, bin2, bin3});
+            disc.Bins.AddRange(new List<Bin> { bin1, bin2, bin3 });
 
-            Bin combinedBin = disc.MergeBins(bin2, bin3);
+            Bin combinedBin = disc.MergeBins(bin2, bin3, true);
 
             Assert.Equal(2, disc.Bins.Count);
             Assert.Equal(3, combinedBin.Average);
             Assert.Equal(1, combinedBin.StandardDeviation);
             Assert.Equal(0, combinedBin.Low);
             Assert.Equal(double.PositiveInfinity, combinedBin.High);
-            Assert.Equal(3, combinedBin.MinPointsForAction);
-
         }
-
-        [Fact]
-        public void GetBin_100RepeatedNoisyValues_102Bins()
+    }
+    public class DiscretizerUsageTest
+    {
+        [Theory]
+        [InlineData(0.01)]
+        [InlineData(0.10)] //For some reason this sometimes fails. A particular bin ends up getting extra unnecessary resolution.
+        [InlineData(0.20)]
+        public void GetBin_100Values_102Bins(double maxNoise)
         {
-            //Generated noisy values between ]
-            List<int> crispValues = Enumerable.Range(0, 100).ToList();
-            List<double> x_noisy = GenerateNoisyData(crispValues, 0.1, 100);
+            //List of crisp values
+            List<int> x_crisp = Enumerable.Range(0, 100).ToList();
 
             //Add all values to the discretizer
             Discretizer disc = new Discretizer();
-            for(int i =0; i<10; i++)
-              foreach (double x in x_noisy)
-                    disc.GetBin(x);
-
-            //Check
-            Assert.InRange(disc.Bins.Count,100,105); //Ideally 102, but there is a randomization factor so it may occasionally go higher or lower.
-        }
-        [Fact]
-        public void GetBin_BinaryRepeatedNoisyValues_4Bins()
-        {
-            //Values to generate from
-            List<double> x_noisy = GenerateNoisyData(new List<double> {0, 5}, 0.01, 100);
-
-            //Add all values to the discretizer
-            Discretizer disc = new Discretizer();
-            for (int i = 0; i < 5; i++)
+            Random rand = new Random();
+            for (int i = 0; i < 10000; i++)
+            {
+                //Generate a noisy value for each entry then randomize the order.
+                List<double> x_noisy = GenerateNoisyData(x_crisp, maxNoise, 1).OrderBy(p=> rand.NextDouble()).ToList();
+                //Add all values to discretizer
                 foreach (double x in x_noisy)
                     disc.GetBin(x);
+            }
+
+            //Check
+            Assert.Equal(102, disc.Bins.Count);
+        }
+
+
+        [Theory]
+        [InlineData(0.00)] //This is an interesting case. In theory it should never happen, because all values have noise. It creates extra bins between the values. As such it fails.
+        [InlineData(0.01)]
+        [InlineData(0.10)]
+        [InlineData(0.20)]
+        public void GetBin_2Values_4Bins(double maxNoise)
+        {
+            //Values to generate from
+            List<int> x_crisp = new List<int> { 0, 5 };
+            int passes = 10000;
+
+            //Add all values to the discretizer
+            Discretizer disc = new Discretizer();
+            for (int i = 0; i < passes; i++)
+            {
+                List<double> x_noisy = GenerateNoisyData(x_crisp, maxNoise, 1);
+                foreach (double x in x_noisy)
+                    disc.GetBin(x);
+            }
 
             //Check
             Assert.Equal(4, disc.Bins.Count); //Ideally 102, but there is a randomization factor so it may occasionally go higher or lower.
         }
 
-
+        //Methods
         public List<double> GenerateNoisyData(List<int> origValues, double maxNoise, int numPerOrigValue)
         {
             return GenerateNoisyData(origValues.ConvertAll<double>(x => (double)x), maxNoise, numPerOrigValue);
