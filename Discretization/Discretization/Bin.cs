@@ -159,7 +159,7 @@ namespace Discretization
             }
         }
 
-        public int MinPointsForAction { get; set; }
+        public double MinPointsForAction { get; set; }
 
         //Constructors
         public Bin() : this(double.NegativeInfinity, double.PositiveInfinity) { }
@@ -169,7 +169,7 @@ namespace Discretization
             this.Low = low;
             this.High = high;
             this.NumStandardDeviations = numStandardDeviations;
-            this.MinPointsForAction = 100;
+            this.MinPointsForAction = 2;
         }
 
         //Methods
@@ -194,13 +194,13 @@ namespace Discretization
                 this.Count1StdDev += 1;
 
             //Reset Statistics if count is very high
-            if (this.Count > 10000)
-            {
-                this.Count = this.Count / 10;
-                this.Count1StdDev = this.Count1StdDev / 10;
-                this.Sum = this.Sum / 10;
-                this.SquareSum = this.SquareSum / 100;
-            }
+            //if (this.Count > 10000)
+            //{
+            //    this.Count = this.Count / 10;
+            //    this.Count1StdDev = this.Count1StdDev / 10;
+            //    this.Sum = this.Sum / 10;
+            //    this.SquareSum = this.SquareSum / 100;
+            //}
                 
         }
 
@@ -217,7 +217,7 @@ namespace Discretization
             //No Action: If both ends within the bin range.
             if (this.Low != double.NegativeInfinity && this.High != double.PositiveInfinity)
                 if (nSigmaLow > this.Low && nSigmaHigh < this.High)
-                    if (Percent1StdDev > 0.681)
+                    if (Percent1StdDev > 0.60) //Ideally this should be 68.1% since it is looking for a gaussian distribution.
                         return BinAction.None;
 
 
@@ -233,8 +233,8 @@ namespace Discretization
 
 
             //Split: Too many points included
-            if (Percent1StdDev > 0.90) //Ideally this should be 68.1% since it is looking for a gaussian distribution.
-                return BinAction.SplitAtAvg;
+            //if (Percent1StdDev > 0.90) //Ideally this should be 68.1% since it is looking for a gaussian distribution.
+            //    return BinAction.SplitAtAvg;
             //Split: Distribution is too flat.
             if (Percent1StdDev < 0.60) //Ideally this should be 68.1% since it is looking for a gaussian distribution.
                 return BinAction.SplitAtAvg;
