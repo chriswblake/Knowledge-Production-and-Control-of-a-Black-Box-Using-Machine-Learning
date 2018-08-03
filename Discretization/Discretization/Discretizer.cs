@@ -17,7 +17,6 @@ namespace Discretization
         }
         public List<Bin> BinsFirst10 { get { return BinsOrderedByLow.Take(5).ToList(); } }
         public List<Bin> BinsLast10 { get { return BinsOrderedByLow.Skip(Bins.Count-5).Take(5).ToList(); } }
-        public List<Bin> BinsLowCount { get { return BinsOrderedByLow.Where(p => p.Count < 100).ToList();} }
 
         //Constuctors
         public Discretizer()
