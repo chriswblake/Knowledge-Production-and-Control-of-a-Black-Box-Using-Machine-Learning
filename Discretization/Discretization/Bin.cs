@@ -231,10 +231,6 @@ namespace Discretization
             if (nSigmaLow > this.Low && this.High == double.PositiveInfinity)
                 return BinAction.SplitAtPosNSigma;
 
-
-            //Split: Too many points included
-            //if (Percent1StdDev > 0.90) //Ideally this should be 68.1% since it is looking for a gaussian distribution.
-            //    return BinAction.SplitAtAvg;
             //Split: Distribution is too flat.
             if (Percent1StdDev < 0.60) //Ideally this should be 68.1% since it is looking for a gaussian distribution.
                 return BinAction.SplitAtAvg;

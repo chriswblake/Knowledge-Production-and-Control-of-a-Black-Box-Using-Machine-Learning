@@ -15,6 +15,9 @@ namespace Discretization
                 return this.Bins.OrderBy(p => p.Low).ToList();
             }
         }
+        public List<Bin> BinsFirst10 { get { return BinsOrderedByLow.Take(5).ToList(); } }
+        public List<Bin> BinsLast10 { get { return BinsOrderedByLow.Skip(Bins.Count-5).Take(5).ToList(); } }
+        public List<Bin> BinsLowCount { get { return BinsOrderedByLow.Where(p => p.Count < 100).ToList();} }
 
         //Constuctors
         public Discretizer()
@@ -33,20 +36,23 @@ namespace Discretization
             theBin.AddValue(value);
 
             //Determine the action to take
-            switch (theBin.PickAction())
+            BinAction theAction = theBin.PickAction();
+            switch (theAction)
             {
                 case BinAction.SplitAtAvg:
                     SplitBin(theBin, theBin.Average);
                     break;
                 case BinAction.SplitAtNegNSigma:
                     { 
-                        double splitPoint = theBin.Average - 1.05 * theBin.NumStandardDeviations * theBin.StandardDeviation;
+                        //double splitPoint = theBin.Average - 1.05 * theBin.NumStandardDeviations * theBin.StandardDeviation;
+                        double splitPoint = theBin.Average -  (theBin.NumStandardDeviations+1) * theBin.StandardDeviation;
                         SplitBin(theBin, splitPoint);
                     }
                     break;
                 case BinAction.SplitAtPosNSigma:
                     { 
-                        double splitPoint = theBin.Average + 1.05 * theBin.NumStandardDeviations * theBin.StandardDeviation;
+                        //double splitPoint = theBin.Average + 1.05 * theBin.NumStandardDeviations * theBin.StandardDeviation;
+                        double splitPoint = theBin.Average + (theBin.NumStandardDeviations+1) * theBin.StandardDeviation;
                         SplitBin(theBin, splitPoint);
                     }
                     break;
@@ -56,7 +62,7 @@ namespace Discretization
                         Bin binHigh = Bins.Find(p => p.Low == theBin.High);
                         //Keep the statistics if merging with one of the end bin (the bins with infinity as a high).
                         bool keepStatistics = false;
-                        if (binHigh.High == double.PositiveInfinity)
+                        if (theBin.Low==double.NegativeInfinity || binHigh.High == double.PositiveInfinity)
                             keepStatistics = true;
                         //Merge the bins
                         MergeBins(theBin, binHigh, keepStatistics);
@@ -68,14 +74,14 @@ namespace Discretization
                         Bin binLow = Bins.Find(p => p.High == theBin.Low);
                         //Keep the statistics if merging with one of the end bin (the bins with infinity as a high).
                         bool keepStatistics = false;
-                        if (binLow.Low == double.NegativeInfinity)
+                        if (theBin.High == double.PositiveInfinity || binLow.Low == double.NegativeInfinity)
                             keepStatistics = true;
                         //Merge the bins
                         MergeBins(binLow, theBin, keepStatistics);
                     }
                     break;
             }
-
+            
             //Return that bin as the selected bin
             return theBin;
         }
@@ -121,8 +127,9 @@ namespace Discretization
                 return new List<Bin>(); //Do nothing
 
             //Create bins
-            Bin binLow = new Bin(theBin.Low, splitPoint, theBin.NumStandardDeviations) { MinPointsForAction = theBin.MinPointsForAction };
-            Bin binHigh = new Bin(splitPoint, theBin.High, theBin.NumStandardDeviations) { MinPointsForAction = theBin.MinPointsForAction };
+            double newMinPointsForAction = 1.05*theBin.MinPointsForAction;
+            Bin binLow = new Bin(theBin.Low, splitPoint, theBin.NumStandardDeviations) { MinPointsForAction = newMinPointsForAction };
+            Bin binHigh = new Bin(splitPoint, theBin.High, theBin.NumStandardDeviations) { MinPointsForAction = newMinPointsForAction };
 
             //Check if data statistics can be kept
             if (binLow.Low <= theBin.AvgMinusNSigma && binLow.High > theBin.AvgPlusNSigma)
@@ -152,11 +159,12 @@ namespace Discretization
         }
         public Bin MergeBins(Bin bin1, Bin bin2, bool keepStatistics)
         {
-            //Get new settings for bin
+            //Get settings for new bin
             double newLow = Math.Min(bin1.Low, bin2.Low);
             double newHigh = Math.Max(bin1.High, bin2.High);
             double newStdDev = Math.Max(bin1.NumStandardDeviations, bin2.NumStandardDeviations);
-            int newMinPointsForAction = Math.Max(bin1.MinPointsForAction, bin2.MinPointsForAction);
+            double newMinPointsForAction = Math.Max(bin1.MinPointsForAction, bin2.MinPointsForAction);
+            newMinPointsForAction *= 1.05;
 
             //Create Bin
             Bin combinedBin = new Bin(newLow, newHigh, newStdDev) { MinPointsForAction = newMinPointsForAction };
