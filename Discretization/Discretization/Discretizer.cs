@@ -84,41 +84,7 @@ namespace Discretization
             //Return that bin as the selected bin
             return theBin;
         }
-        //public void PerformAction(Bin theBin)
-        //{
-        //    //Calculate high and low of the recorded data
-        //    double sigmaLow = theBin.Average - theBin.NumStandardDeviations * theBin.StandardDeviation;
-        //    double sigmaHigh = theBin.Average + theBin.NumStandardDeviations * theBin.StandardDeviation;
 
-        //    switch (theAction)
-        //    { 
-        //        case BinAction.Split:
-        //            //Initial bin
-        //            if (theBin.Low == double.NegativeInfinity && theBin.High == double.PositiveInfinity)
-        //            {
-        //                //Create 3 bins
-        //                Bin binLow = new Bin(double.NegativeInfinity, sigmaLow);
-        //                Bin binMid = new Bin(sigmaLow, sigmaHigh);
-        //                Bin binHigh = new Bin(sigmaHigh, double.PositiveInfinity);
-        //                Bins.AddRange(new Bin[] { binLow, binMid, binHigh});
-        //                Bins.Remove(theBin);
-        //                return;
-        //            }
-
-        //            //Both ends are outside the bin range.
-        //            if (sigmaLow < theBin.Low && sigmaHigh > theBin.High)
-        //            {
-        //                //Create  bins
-        //                Bin binLow = new Bin(theBin.Low, theBin.Average);
-        //                Bin binHigh = new Bin(theBin.Average, theBin.High);
-        //                Bins.AddRange(new Bin[] { binLow, binHigh });
-        //                Bins.Remove(theBin);
-        //                return;
-        //            }
-
-        //            break;
-        //    }
-        //}
         public List<Bin> SplitBin(Bin theBin, double splitPoint)
         {
             //Validate split point
