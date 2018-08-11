@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Diagnostics;
 
 namespace Discretization
 {
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public class Discretizer
     {
         //Properties
@@ -17,6 +19,17 @@ namespace Discretization
         }
         public List<Bin> BinsFirst10 { get { return BinsOrderedByLow.Take(5).ToList(); } }
         public List<Bin> BinsLast10 { get { return BinsOrderedByLow.Skip(Bins.Count-5).Take(5).ToList(); } }
+
+        //Properties - Logging development
+        public bool LogDevelopment = true;
+        public List<HistoryItem> DevelopmentHistory = new List<HistoryItem>();
+        public List<HistoryItem> DevelopmentHistory_NoWaiting
+        {
+            get
+            {
+                return DevelopmentHistory.Where(p => p.Action != BinAction.InsufficientData).ToList();
+            }
+        }
 
         //Constuctors
         public Discretizer()
@@ -81,10 +94,13 @@ namespace Discretization
                     break;
             }
             
+            //Log bin development
+            if(LogDevelopment)
+                DevelopmentHistory.Add(new HistoryItem(this.Bins, theBin, theAction, value));
+
             //Return that bin as the selected bin
             return theBin;
         }
-
         public List<Bin> SplitBin(Bin theBin, double splitPoint)
         {
             //Validate split point
@@ -151,9 +167,38 @@ namespace Discretization
         }
 
         //Debug
-        public override string ToString()
+        public string DebuggerDisplay
         {
-            return string.Format("Bins={0}", Bins.Count);
+            get
+            {
+                return string.Format("Bins={0}", Bins.Count);
+            }
+        }
+    }
+
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    public class HistoryItem
+    {
+        public List<Bin> Bins = null;
+        public Bin ModifiedBin = null;
+        public BinAction Action;
+        public double value;
+
+        public HistoryItem(List<Bin> resultBins, Bin modifiedBin, BinAction binAction, double value)
+        {
+            this.Bins = resultBins.ToList();
+            this.ModifiedBin = modifiedBin.Clone();
+            this.Action = binAction;
+            this.value = value;
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        private string DebuggerDisplay
+        {
+            get
+            { 
+                return string.Format("Bins={0}, {1}: {2} {3}", this.Bins.Count, this.Action, this.ModifiedBin.DebuggerDisplay);
+            }
         }
     }
 }

@@ -362,9 +362,26 @@ namespace Discretization
             //This should never occur
             return BinAction.Undecided;
         }
+        public Bin Clone()
+        {
+            Bin c = new Bin()
+            {
+                BinID = BinID,
+                Low = this.Low,
+                High = this.High,
+                MinPointsForAction = this.MinPointsForAction,
+                Count = this.Count,
+                Sum = this.Sum,
+                SquareSum = this.SquareSum,
+                InnerBinsCount = this.InnerBinsCount,
+                StdDevsNegCount = this.StdDevsNegCount,
+                StdDevsPosCount = this. StdDevsPosCount,
+            };
+            return c;
+        }
 
         //Debug
-        private string DebuggerDisplay
+        public string DebuggerDisplay
         {
             get
             {
@@ -407,5 +424,4 @@ namespace Discretization
         InsufficientData,
         Undecided //Probably an error. Not good!
     }
-
 }
