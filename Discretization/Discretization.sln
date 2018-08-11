@@ -5,7 +5,9 @@ VisualStudioVersion = 15.0.27428.2015
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discretization", "Discretization\Discretization.csproj", "{82FADE40-9DB5-42A8-9301-8CC620407D77}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discretization.Tests", "Discretization.Tests\Discretization.Tests.csproj", "{78EFED15-9607-43FF-8901-BC4BD39BA240}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discretization.Tests", "Discretization.Tests\Discretization.Tests.csproj", "{78EFED15-9607-43FF-8901-BC4BD39BA240}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discretization.Experiments", "Discretization.Experiments\Discretization.Experiments.csproj", "{60604DB2-2C74-4978-9708-4A262F48431E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{78EFED15-9607-43FF-8901-BC4BD39BA240}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78EFED15-9607-43FF-8901-BC4BD39BA240}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{78EFED15-9607-43FF-8901-BC4BD39BA240}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60604DB2-2C74-4978-9708-4A262F48431E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60604DB2-2C74-4978-9708-4A262F48431E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60604DB2-2C74-4978-9708-4A262F48431E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60604DB2-2C74-4978-9708-4A262F48431E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
