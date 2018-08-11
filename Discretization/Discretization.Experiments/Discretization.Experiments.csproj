@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="OxyPlot.Core" Version="2015.1.1046-alpha"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Discretization\Discretization.csproj"/>
+  </ItemGroup>
+</Project>
