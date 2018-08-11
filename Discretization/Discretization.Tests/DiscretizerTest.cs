@@ -138,6 +138,7 @@ namespace Discretization.Tests
         [InlineData(0.01)] //Always passes.
         [InlineData(0.10)] //For some reason this sometimes fails. A particular bin ends up getting extra unnecessary resolution.
         [InlineData(0.20)] //This never seems to pass.
+        [InlineData(0.50)] //This never seems to pass.
         public void GetBin_100Values_102Bins(double maxNoise)
         {
             //List of crisp values
@@ -184,22 +185,50 @@ namespace Discretization.Tests
             Assert.Equal(4, disc.Bins.Count); //Ideally 102, but there is a randomization factor so it may occasionally go higher or lower.
         }
 
-        //Methods
-        public List<double> GenerateNoisyData(List<int> origValues, double maxNoise, int numPerOrigValue)
+        [Theory]
+        [InlineData(0.01)]
+        [InlineData(0.10)]
+        [InlineData(0.20)]
+        [InlineData(0.50)]
+        [InlineData(1.00)]
+        [InlineData(5.00)]
+        public void GenerateNoisyData_1000Pts_SeeAssert(double maxNoise)
         {
-            return GenerateNoisyData(origValues.ConvertAll<double>(x => (double)x), maxNoise, numPerOrigValue);
+            int count = 1000;
+            int x_crisp = 0;
+            var values = GenerateNoisyData(new List<double> {x_crisp}, maxNoise, count);
+
+            //Calculate statistics
+            double min = values.Min();
+            double max = values.Max();
+            double avg = values.Average();
+            double stdDev = Math.Sqrt(values.Sum(x => Math.Pow(x - avg, 2)) / (count - 1));
+            double stdDev1_Percent = values.Count(x => (avg-stdDev <= x) && (x < avg+stdDev))/ Convert.ToDouble(count);
+
+            Assert.InRange(min, x_crisp-maxNoise, double.PositiveInfinity);
+            Assert.InRange(max, double.NegativeInfinity, x_crisp+maxNoise);
+            Assert.InRange(avg, x_crisp-0.1*stdDev, x_crisp+0.1*stdDev);
+            //Assert.InRange(stdDev, 0.01, 0.01);
+            Assert.InRange(stdDev1_Percent, 0.65, 0.70);
         }
-        public List<double> GenerateNoisyData(List<double> origValues, double maxNoise, int numPerOrigValue)
+
+        //Methods
+        public List<double> GenerateNoisyData(List<int> x_crisp, double maxNoise, int numPerCrispValue)
+        {
+            return GenerateNoisyData(x_crisp.ConvertAll<double>(x => (double)x), maxNoise, numPerCrispValue);
+        }
+        public List<double> GenerateNoisyData(List<double> x_crisp, double maxNoise, int numPerCrispValue)
         {
             //Create list of values with noise
             Random rand = new Random();
             List<double> x_noisy = new List<double>();
-            for (int i = 0; i < numPerOrigValue; i++)
+            
+            foreach (double x in x_crisp)
             {
-                foreach (double x in origValues)
+                for (int i = 0; i < numPerCrispValue; i++)
                 {
-                    double factor = SampleGaussian(rand, 0, 1.0/6.0); //Generates a value between 0 and 1. We know that 6 sigma covers 99.999999% of values. So, 1/6 means 0 to 1.
-                    x_noisy.Add(x+ factor*maxNoise);
+                    double factor = SampleGaussian(rand, 0, 1.0/6.0); //Generates a value between 0 and 1. We know that 6 sigma covers 99.999999% of values. So, 1/6 std dev results in -1 to 1.
+                    x_noisy.Add(x + factor*maxNoise);
                 }
             }
 
