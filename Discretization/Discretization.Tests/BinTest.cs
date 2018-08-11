@@ -90,7 +90,103 @@ namespace Discretization.Tests
             Assert.Equal(1.0, result);
         }
         #endregion
+        
+        #region Distribution Inner Bins
+        [Fact]
+        public void InnerBinsPercent_DataNearHigh_SeeAssert()
+        {
+            var theBin = new Bin(0, 10);
+            for(int i=0; i<100; i++)
+                theBin.AddValues(new List<double>() {
+                        5,
+                        6,6,
+                        7,7,7,7,7,7,
+                        8,8,8,8,8,8,8,
+                        9,9,9,9,9,9,9,9,
+                    });
 
+            Assert.InRange(theBin.InnerBinsPercent[0], 0, 0);
+            Assert.InRange(theBin.InnerBinsPercent[1], 0, 0);
+            Assert.InRange(theBin.InnerBinsPercent[2], 0, 0);
+            Assert.InRange(theBin.InnerBinsPercent[3], 0.04, 0.05);
+            Assert.InRange(theBin.InnerBinsPercent[4], 0.33, 0.34);
+            Assert.InRange(theBin.InnerBinsPercent[5], 0.29, 0.30);
+            Assert.InRange(theBin.InnerBinsPercent[6], 0.33, 0.34);
+        }
+        [Fact]
+        public void InnerBinsPercent_DataNearLow_SeeAssert()
+        {
+            var theBin = new Bin(0, 10);
+            for (int i = 0; i < 1000; i++)
+                theBin.AddValues(new List<double> {
+                    1,1,1,1,1,1,1,1,
+                    2,2,2,2,2,2,2,
+                    3,3,3,3,3,3,
+                    4,4,
+                    5,
+                });
+            
+            Assert.InRange(theBin.InnerBinsPercent[0], 0.33, 0.34);
+            Assert.InRange(theBin.InnerBinsPercent[1], 0.29, 0.30);
+            Assert.InRange(theBin.InnerBinsPercent[2], 0.33, 0.34);
+            Assert.InRange(theBin.InnerBinsPercent[3], 0.04, 0.05);
+            Assert.InRange(theBin.InnerBinsPercent[4], 0, 0);
+            Assert.InRange(theBin.InnerBinsPercent[5], 0, 0);
+            Assert.InRange(theBin.InnerBinsPercent[6], 0, 0);
+        }
+        [Fact]
+        public void InnerBinsPercent_UShapedDistribution_SeeAssert()
+        {
+            var theBin = new Bin(0, 10);
+            for (int i = 0; i < 1000; i++)
+                theBin.AddValues(new List<double> {
+                    1,1,1,1,
+                    2,2,2,
+                    3,3,
+                    4,
+                    5,
+                    6,
+                    7,7,
+                    8,8,8,
+                    9,9,9,9,
+                });
+            
+            Assert.InRange(theBin.InnerBinsPercent[0], 0.19, 0.20);
+            Assert.InRange(theBin.InnerBinsPercent[1], 0.14, 0.15);
+            Assert.InRange(theBin.InnerBinsPercent[2], 0.14, 0.15);
+            Assert.InRange(theBin.InnerBinsPercent[3], 0.04, 0.05);
+            Assert.InRange(theBin.InnerBinsPercent[4], 0.14, 0.15);
+            Assert.InRange(theBin.InnerBinsPercent[5], 0.14, 0.15);
+            Assert.InRange(theBin.InnerBinsPercent[6], 0.19, 0.20);
+        }
+        [Fact]
+        public void InnerBinsPercent_FlatDistribution_SeeAssert()
+        {
+            var theBin = new Bin(0,10);
+            for (int i = 0; i < 1000; i++)
+                theBin.AddValues(new List<double> {
+                    1,1,1,1,
+                    2,2,2,2,
+                    3,3,3,3,
+                    4,4,4,4,
+                    5,5,5,5,
+                    6,6,6,6,
+                    7,7,7,7,
+                    8,8,8,8,
+                    9,9,9,9,
+                });
+            
+            Assert.InRange(theBin.InnerBinsPercent[0], 0.11, 0.12);
+            Assert.InRange(theBin.InnerBinsPercent[1], 0.11, 0.12);
+            Assert.InRange(theBin.InnerBinsPercent[2], 0.22, 0.23);
+            Assert.InRange(theBin.InnerBinsPercent[3], 0.11, 0.12);
+            Assert.InRange(theBin.InnerBinsPercent[4], 0.22, 0.23);
+            Assert.InRange(theBin.InnerBinsPercent[5], 0.11, 0.12);
+            Assert.InRange(theBin.InnerBinsPercent[6], 0.11, 0.12);
+        }
+        
+        #endregion
+        
         #region Actions
         [Fact]
         public void PickAction_LessThanMinDataPoints_InsufficientData()
