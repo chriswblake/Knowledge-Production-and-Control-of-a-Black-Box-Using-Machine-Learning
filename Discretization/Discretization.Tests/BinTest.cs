@@ -8,6 +8,7 @@ namespace Discretization.Tests
     public class BinTest
     {   //MethodName_StateUnderTest_ExpectedBehavior
 
+        #region Constructors
         [Fact]
         public void Bin_EmptyConstructorDefault_LowNegInfHighPosInf()
         {
@@ -24,9 +25,11 @@ namespace Discretization.Tests
             Assert.Equal(0, theBin.Low);
             Assert.Equal(10, theBin.High);
         }
+        #endregion
 
+        #region Statistics
         [Fact]
-        public void Sum_NonEmptyListOfValues_TwentyTwo()
+        public void Sum_2223444_21()
         {
             Bin theBin = new Bin();
             theBin.AddValues(new List<double> { 2, 2, 2, 3, 4, 4, 4 });
@@ -37,7 +40,7 @@ namespace Discretization.Tests
         }
 
         [Fact]
-        public void SquareSum_NonEmptyListOfValues_SixtyNine()
+        public void SquareSum_2223444_69()
         {
             Bin theBin = new Bin();
             theBin.AddValues(new List<double> { 2, 2, 2, 3, 4, 4, 4 });
@@ -48,7 +51,7 @@ namespace Discretization.Tests
         }
 
         [Fact]
-        public void Average_NoValues_PosInfinity()
+        public void Average_Empty_PosInf()
         {
             Bin theBin = new Bin();
 
@@ -57,7 +60,7 @@ namespace Discretization.Tests
             Assert.Equal(double.PositiveInfinity, result);
         }
         [Fact]
-        public void Average_NonEmptyListOfValues_One()
+        public void Average_2223444_3()
         {
             Bin theBin = new Bin();
             theBin.AddValues(new List<double> { 2, 2, 2, 3, 4, 4, 4 });
@@ -68,7 +71,7 @@ namespace Discretization.Tests
         }
 
         [Fact]
-        public void StandardDeviation_NoValues_Zero()
+        public void StandardDeviation_Empty_PosInf()
         {
             Bin theBin = new Bin();
 
@@ -77,7 +80,7 @@ namespace Discretization.Tests
             Assert.Equal(double.PositiveInfinity, result);
         }
         [Fact]
-        public void StandardDeviation_NonEmptyListOfValues_One()
+        public void StandardDeviation_2223444_1()
         { 
             Bin theBin = new Bin();
             theBin.AddValues(new List<double> { 2, 2, 2, 3, 4, 4, 4 });
@@ -86,7 +89,9 @@ namespace Discretization.Tests
 
             Assert.Equal(1.0, result);
         }
+        #endregion
 
+        #region Actions
         [Fact]
         public void PickAction_LessThanMinDataPoints_InsufficientData()
         {
@@ -254,5 +259,6 @@ namespace Discretization.Tests
 
             Assert.Equal(BinAction.MergeLow, result);
         }
+        #endregion
     }
 }
