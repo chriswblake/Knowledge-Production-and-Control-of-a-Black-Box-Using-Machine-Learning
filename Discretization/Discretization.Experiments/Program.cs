@@ -12,46 +12,50 @@ namespace Discretization.Experiments
     {
         static void Main(string[] args)
         {
-            //var bins = OneValueLooseExample();
-            //var bins = OneValueTightExample();
-            //var bins = TwoValuesExample();
-            var bins = ManyValuesExample();
+            Exp_CreateSVG();
 
             //var values = DiscretizerExamples.GenerateNoisyData(new List<double>() { 0 }, 10, 1000);
             //SaveValuesToFile(values, @"data.txt");
-
-            //Save Chart
-            CreateSVG(bins, @"results/Example.svg");
 
             //Finished
             Console.WriteLine("Finished!");
         }
 
-        //Methods - Examples
-        public static List<Bin> OneValueTightExample()
+        //Experiments
+        public static void Exp_CreateSVG()
         {
             //Create bins
-            List<Bin> bins = new List<Bin>();
-            Bin bin1 = new Bin(0, 10);
+            //var bins = new List<Bin> {OneValueLooseExample()};
+            //var bins = new List<Bin> {OneValueTightExample()};
+            //var bins = TwoValuesExample().Bins;
+            //var bins = ManyValuesExample().Bins;
+            
+            //Save Chart
+            //CreateSVG(bins, @"results/Example.svg");
+        }
+
+        //Methods - Examples
+        public static Bin OneValueTightExample()
+        {
+            //Create bins
+            Bin theBin = new Bin(0, 10);
             for(int i=0; i<100; i++)
-                bin1.AddValues(new List<double>() {
+                theBin.AddValues(new List<double>() {
                     //2,2,
                     4.5,4.6,4.7,4.8,4.9,
                     5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
                     5.1,5.2,5.3,5.4,5.5,
                     //8,8
                 });
-            bins.Add(bin1);
 
-            return bins;
+            return theBin;
         }
-        public static List<Bin> OneValueLooseExample()
+        public static Bin OneValueLooseExample()
         {
             //Create bins
-            List<Bin> bins = new List<Bin>();
-            Bin bin1 = new Bin(0, 10);
+            Bin theBin = new Bin(0, 10);
             for(int i=0; i<100; i++)
-                bin1.AddValues(new List<double>() {
+                theBin.AddValues(new List<double>() {
                     //1,1,1,1,1,1,1,1,1,1,1,
                     //2,2,2,2,2,2,2,2,2,2,2,
                     3,3,3,3,3,3,3,
@@ -62,19 +66,16 @@ namespace Discretization.Experiments
                     //8,8,8,8,8,8,8,8,8,8,8,
                     //9,9,9,9,9,9,9,9,9,9,9,
                 });
-            bins.Add(bin1);
 
-            return bins;
+            return theBin;
         }
-        public static List<Bin> TwoValuesExample()
+        public static Discretizer TwoValuesExample()
         {
-            Discretizer disc = DiscretizerExamples.TwoValues(2.0);
-            return disc.Bins;
+            return DiscretizerExamples.TwoValues(2.0);
         }
-        public static List<Bin> ManyValuesExample()
+        public static Discretizer ManyValuesExample()
         {
-            Discretizer disc = DiscretizerExamples.PickSteps(0, 100, 11, 1.0);
-            return disc.Bins;
+            return DiscretizerExamples.PickSteps(0, 100, 11, 1.0);
         }
 
         //Methods - Support
