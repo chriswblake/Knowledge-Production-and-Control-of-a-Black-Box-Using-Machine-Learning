@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.Diagnostics;
+using Newtonsoft.Json;
 
 namespace Discretization
 {
@@ -10,39 +11,37 @@ namespace Discretization
     public class Discretizer
     {
         //Properties
-        public List<Bin> Bins = new List<Bin>();
-        public List<Bin> BinsOrderedByLow {
-            get
-            {
-                return this.Bins.OrderBy(p => p.Low).ToList();
-            }
-        }
+        public List<Bin> Bins {get; set;} = new List<Bin>() {new Bin()};
+        public List<Bin> BinsOrderedByLow { get { return this.Bins.OrderBy(p => p.Low).ToList(); }}
         public List<Bin> BinsFirst10 { get { return BinsOrderedByLow.Take(5).ToList(); } }
         public List<Bin> BinsLast10 { get { return BinsOrderedByLow.Skip(Bins.Count-5).Take(5).ToList(); } }
 
-        //Properties - Logging development
-        public bool LogDevelopment = true;
-        public List<HistoryItem> DevelopmentHistory = new List<HistoryItem>();
-        public List<HistoryItem> DevelopmentHistory_NoWaiting
-        {
-            get
-            {
-                return DevelopmentHistory.Where(p => p.Action != BinAction.InsufficientData).ToList();
-            }
-        }
-
         //Constuctors
-        public Discretizer()
+        public Discretizer() {}
+        [JsonConstructor]
+        private Discretizer(string notUsed)
         {
-            //Create first bin to accept all values
-            Bins.Add(new Bin());
+            //Clear initial bins
+            this.Bins = new List<Bin>();
         }
-
+        public static Discretizer FromJson(string json)
+        {
+            return JsonConvert.DeserializeObject<Discretizer>(json);
+        }
+        
         //Methods
         public Bin GetBin(double value)
         {
+            return GetBin(value, true);
+        }
+        public Bin GetBin(double value, bool enableTraining)
+        {
             //Find appropriate bin
             Bin theBin = Bins.Find(p => value >= p.Low && value < p.High); //inclusive low. exclusive high
+
+            //Return the bin if not training
+            if(!enableTraining)
+                return theBin;
 
             //Add this value to that bin
             theBin.AddValue(value);
@@ -56,15 +55,13 @@ namespace Discretization
                     break;
                 case BinAction.SplitAtNegNSigma:
                     { 
-                        //double splitPoint = theBin.Average - 1.05 * theBin.NumStandardDeviations * theBin.StandardDeviation;
-                        double splitPoint = theBin.Average -  (theBin.NumStandardDeviations+1) * theBin.StandardDeviation;
+                        double splitPoint = theBin.Average -  (6+0.1) * theBin.StandardDeviation; //buffer of 10% of 1 stddev
                         SplitBin(theBin, splitPoint);
                     }
                     break;
                 case BinAction.SplitAtPosNSigma:
                     { 
-                        //double splitPoint = theBin.Average + 1.05 * theBin.NumStandardDeviations * theBin.StandardDeviation;
-                        double splitPoint = theBin.Average + (theBin.NumStandardDeviations+1) * theBin.StandardDeviation;
+                        double splitPoint = theBin.Average + (6+0.1)*theBin.StandardDeviation; //buffer of 10% of 1 stddev
                         SplitBin(theBin, splitPoint);
                     }
                     break;
@@ -109,17 +106,17 @@ namespace Discretization
 
             //Create bins
             double newMinPointsForAction = 1.05*theBin.MinPointsForAction;
-            Bin binLow = new Bin(theBin.Low, splitPoint, theBin.NumStandardDeviations) { MinPointsForAction = newMinPointsForAction };
-            Bin binHigh = new Bin(splitPoint, theBin.High, theBin.NumStandardDeviations) { MinPointsForAction = newMinPointsForAction };
+            Bin binLow = new Bin(theBin.Low, splitPoint) { MinPointsForAction = newMinPointsForAction };
+            Bin binHigh = new Bin(splitPoint, theBin.High) { MinPointsForAction = newMinPointsForAction };
 
             //Check if data statistics can be kept
-            if (binLow.Low <= theBin.AvgMinusNSigma && binLow.High > theBin.AvgPlusNSigma)
+            if (binLow.Low <= theBin.StdDevsNeg[6] && binLow.High > theBin.StdDevsPos[6])
             {
                 binLow.Count = theBin.Count;
                 binLow.Sum = theBin.Sum;
                 binLow.SquareSum = theBin.SquareSum;
             }
-            else if (binHigh.Low <= theBin.AvgMinusNSigma && binHigh.High > theBin.AvgPlusNSigma)
+            else if (binHigh.Low <= theBin.StdDevsNeg[6] && binHigh.High > theBin.StdDevsPos[6])
             {
                 binHigh.Count = theBin.Count;
                 binHigh.Sum = theBin.Sum;
@@ -143,12 +140,11 @@ namespace Discretization
             //Get settings for new bin
             double newLow = Math.Min(bin1.Low, bin2.Low);
             double newHigh = Math.Max(bin1.High, bin2.High);
-            double newStdDev = Math.Max(bin1.NumStandardDeviations, bin2.NumStandardDeviations);
             double newMinPointsForAction = Math.Max(bin1.MinPointsForAction, bin2.MinPointsForAction);
             newMinPointsForAction *= 1.05;
 
             //Create Bin
-            Bin combinedBin = new Bin(newLow, newHigh, newStdDev) { MinPointsForAction = newMinPointsForAction };
+            Bin combinedBin = new Bin(newLow, newHigh) { MinPointsForAction = newMinPointsForAction };
 
             //Combine data
             if(keepStatistics)
@@ -166,12 +162,50 @@ namespace Discretization
             return combinedBin;
         }
 
+        //Support
+        public string ToJson()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+        public override bool Equals(object obj)
+        {
+            //Check null
+            if(obj == null) return false;
+
+            //Check that it is a Bin
+            if(obj.GetType() != typeof(Discretizer)) return false;
+            
+            //Convert to a Bin
+            Discretizer that = (Discretizer) obj;
+
+            //Check all properties
+            if(!that.Bins.Count.Equals(this.Bins.Count)) return false;
+
+            //Check bins are equal
+            List<Bin> thisBins = this.Bins.OrderBy(p=> p.Low).ToList();
+            List<Bin> thatBins = that.Bins.OrderBy(p=> p.Low).ToList();
+            for(int i=0; i<thisBins.Count; i++)
+                if(!thatBins[i].Equals(thisBins[i])) return false;
+
+            //Passed all tests
+            return true;
+        }
+
         //Debug
         public string DebuggerDisplay
         {
             get
             {
                 return string.Format("Bins={0}", Bins.Count);
+            }
+        }
+        public bool LogDevelopment = true;
+        public List<HistoryItem> DevelopmentHistory = new List<HistoryItem>();
+        public List<HistoryItem> DevelopmentHistory_NoWaiting
+        {
+            get
+            {
+                return DevelopmentHistory.Where(p => p.Action != BinAction.InsufficientData).ToList();
             }
         }
     }
