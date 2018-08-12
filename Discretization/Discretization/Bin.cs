@@ -13,7 +13,7 @@ namespace Discretization
         public int BinID { get; set; }
         public double Low { get; set; } = double.NegativeInfinity;
         public double High { get; set; } = double.PositiveInfinity;
-        public double MinPointsForAction { get; set; }
+        public double MinPointsForAction { get; set; } = 2;
         
         #region Base Statistics
         public int Count { get; set; }
@@ -296,7 +296,6 @@ namespace Discretization
         {
             this.Low = low;
             this.High = high;
-            this.MinPointsForAction = 2;
         }
         public static Bin FromJson(string json)
         {
