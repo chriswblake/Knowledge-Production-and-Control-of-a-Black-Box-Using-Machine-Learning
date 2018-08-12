@@ -11,9 +11,9 @@ namespace Discretization
     {
         //Properties
         public int BinID { get; set; }
-        public double Low { get; private set; }
-        public double High { get; private set; }
-        public double MinPointsForAction { get; set; }
+        public double Low { get; set; } = double.NegativeInfinity;
+        public double High { get; set; } = double.PositiveInfinity;
+        public double MinPointsForAction { get; set; } = 2;
         
         #region Base Statistics
         public int Count { get; set; }
@@ -47,24 +47,12 @@ namespace Discretization
         #endregion
         
         #region Gaussian Details
-        public double NumStandardDeviations { get; private set; }
-        public double AvgPlusNSigma { get
-            {
-                return this.Average + this.NumStandardDeviations * StandardDeviation;
-            }
-        }
-        public double AvgMinusNSigma
-        {
-            get
-            {
-                return this.Average - this.NumStandardDeviations * StandardDeviation;
-            }
-        }
-
         public int Count1StdDev { get; set; }
         public double Percent1StdDev { get
             {
                 return Convert.ToDouble(Count1StdDev) / this.Count;
+                //return StdDevsNegPercent[1] + StdDevsPosPercent[1];
+                //return StdDevsPercent[1];
             }
         }
         #endregion
@@ -142,6 +130,36 @@ namespace Discretization
                     };
 
                 return _StdDevsPosPercent;
+            }
+        }
+        public double[] StdDevsCount
+        {
+            get
+            {
+                return new double[7] {
+                    StdDevsNegCount[0] + StdDevsPosCount[0],
+                    StdDevsNegCount[1] + StdDevsPosCount[1],
+                    StdDevsNegCount[2] + StdDevsPosCount[2],
+                    StdDevsNegCount[3] + StdDevsPosCount[3],
+                    StdDevsNegCount[4] + StdDevsPosCount[4],
+                    StdDevsNegCount[5] + StdDevsPosCount[5],
+                    StdDevsNegCount[6] + StdDevsPosCount[6],
+                };
+            }
+        }
+        public double[] StdDevsPercent
+        {
+            get
+            {
+                return new double[7] {
+                    StdDevsNegPercent[0] + StdDevsPosPercent[0],
+                    StdDevsNegPercent[1] + StdDevsPosPercent[1],
+                    StdDevsNegPercent[2] + StdDevsPosPercent[2],
+                    StdDevsNegPercent[3] + StdDevsPosPercent[3],
+                    StdDevsNegPercent[4] + StdDevsPosPercent[4],
+                    StdDevsNegPercent[5] + StdDevsPosPercent[5],
+                    StdDevsNegPercent[6] + StdDevsPosPercent[6],
+                };
             }
         }
 
@@ -270,18 +288,18 @@ namespace Discretization
                 }
             }
         }
-        
         #endregion
 
         //Constructors
-        public Bin() : this(double.NegativeInfinity, double.PositiveInfinity) { }
-        public Bin(double low, double high) : this(low, high, 6) { }
-        public Bin(double low, double high, double numStandardDeviations)
+        public Bin() { }
+        public Bin(double low, double high)
         {
             this.Low = low;
             this.High = high;
-            this.NumStandardDeviations = numStandardDeviations;
-            this.MinPointsForAction = 2;
+        }
+        public static Bin FromJson(string json)
+        {
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<Bin>(json);
         }
 
         //Methods
@@ -302,7 +320,7 @@ namespace Discretization
             this.SquareSum += Math.Pow(value, 2);
 
             //Track how many items fell in +-1 standard deviation. This will be used to check the shame of the gausian curve.
-            if ((this.Average - StandardDeviation < value) && (value < this.Average + StandardDeviation))
+            if ((this.Average - StandardDeviation <= value) && (value < this.Average + StandardDeviation))
                 this.Count1StdDev += 1;
 
             //Counters for shapes
@@ -326,8 +344,8 @@ namespace Discretization
                 return BinAction.InsufficientData;
 
             //Calculate high and low of the recorded data
-            double nSigmaLow = this.Average - NumStandardDeviations * StandardDeviation;
-            double nSigmaHigh = this.Average + NumStandardDeviations * StandardDeviation;
+            double nSigmaLow = this.StdDevsNeg[6];
+            double nSigmaHigh = this.StdDevsPos[6];
 
             //No Action: If both ends within the bin range.
             if (this.Low != double.NegativeInfinity && this.High != double.PositiveInfinity)
@@ -362,6 +380,8 @@ namespace Discretization
             //This should never occur
             return BinAction.Undecided;
         }
+
+        //Support
         public Bin Clone()
         {
             Bin c = new Bin()
@@ -376,8 +396,55 @@ namespace Discretization
                 InnerBinsCount = this.InnerBinsCount,
                 StdDevsNegCount = this.StdDevsNegCount,
                 StdDevsPosCount = this. StdDevsPosCount,
+                Count1StdDev = this.Count1StdDev,
             };
             return c;
+        }
+        public string ToJson()
+        {
+            return Newtonsoft.Json.JsonConvert.SerializeObject(this);
+        }
+        public override bool Equals(object obj)
+        {
+            //Check null
+            if(obj == null) return false;
+
+            //Check that it is a Bin
+            if(obj.GetType() != typeof(Bin)) return false;
+            
+            //Convert to a Bin
+            Bin that = (Bin) obj;
+
+            //Check all properties
+            if(!that.BinID.Equals(this.BinID)) return false;
+            if(!that.Low.Equals(this.Low)) return false;
+            if(!that.High.Equals(this.High)) return false;
+            if(!that.MinPointsForAction.Equals(this.MinPointsForAction)) return false;
+
+            if(!that.Count.Equals(this.Count)) return false;
+            if(!that.Sum.Equals(this.Sum)) return false;
+            if(!that.SquareSum.Equals(this.SquareSum)) return false;
+            if(!that.Average.Equals(this.Average)) return false;
+            if(!that.StandardDeviation.Equals(this.StandardDeviation)) return false;
+
+            if(!that.Count1StdDev.Equals(this.Count1StdDev)) return false;
+            if(!that.Percent1StdDev.Equals(this.Percent1StdDev)) return false;
+
+            if(!that.StdDevsNeg.SequenceEqual(this.StdDevsNeg)) return false;
+            if(!that.StdDevsPos.SequenceEqual(this.StdDevsPos)) return false;
+            if(!that.StdDevsNegCount.SequenceEqual(this.StdDevsNegCount)) return false;
+            if(!that.StdDevsPosCount.SequenceEqual(this.StdDevsPosCount)) return false;
+            if(!that.StdDevsNegPercent.SequenceEqual(this.StdDevsNegPercent)) return false;
+            if(!that.StdDevsPosPercent.SequenceEqual(this.StdDevsPosPercent)) return false;
+            if(!that.StdDevsCount.SequenceEqual(this.StdDevsCount)) return false;
+            if(!that.StdDevsPercent.SequenceEqual(this.StdDevsPercent)) return false;
+
+            if(!that.InnerBins.SequenceEqual(this.InnerBins)) return false;
+            if(!that.InnerBinsCount.SequenceEqual(this.InnerBinsCount)) return false;
+            if(!that.InnerBinsPercent.SequenceEqual(this.InnerBinsPercent)) return false;
+
+            //Passed all tests
+            return true;
         }
 
         //Debug
@@ -387,20 +454,23 @@ namespace Discretization
             {
                 string s = "";
                 
+                double avgMinus6Sigma = this.StdDevsNeg[6];
+                double avgPlus6Sigma = this.StdDevsPos[6];
+
                 //Add low and lower sigma
-                if (this.Low <= this.AvgMinusNSigma)
-                    s += string.Format("[{0:N2} ({1:N2})", this.Low, this.AvgMinusNSigma);
+                if (this.Low <= avgMinus6Sigma)
+                    s += string.Format("[{0:N2} ({1:N2})", this.Low, avgMinus6Sigma);
                 else
-                    s += string.Format("({0:N2}) [{1:N2}", this.AvgMinusNSigma, this.Low);
+                    s += string.Format("({0:N2}) [{1:N2}", avgMinus6Sigma, this.Low);
 
                 //Add the average
                 s += string.Format(", |{0:N2}|, ", this.Average);
 
                 //Add high and upper sigma
-                if (this.AvgPlusNSigma <= this.High)
-                    s += string.Format("({0:N2}) {1:N2}]", this.AvgPlusNSigma, this.High);
+                if (avgPlus6Sigma <= this.High)
+                    s += string.Format("({0:N2}) {1:N2}]", avgPlus6Sigma, this.High);
                 else
-                    s += string.Format("{0:N2}] ({1:N2})", this.High, this.AvgPlusNSigma);
+                    s += string.Format("{0:N2}] ({1:N2})", this.High, avgPlus6Sigma);
 
                 //Add action
                 //s = s + " ==> "+ PickAction().ToString();

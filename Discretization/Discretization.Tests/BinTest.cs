@@ -25,13 +25,64 @@ namespace Discretization.Tests
             Assert.Equal(0, theBin.Low);
             Assert.Equal(10, theBin.High);
         }
+        [Fact]
+        public void ToJson_JsonBin_SameBin()
+        {
+            var origBin = new Bin(0,10);
+            for (int i = 0; i < 1000; i++)
+                origBin.AddValues(new List<double> {
+                    1,1,1,1,
+                    2,2,2,2,
+                    3,3,3,3,
+                    4,4,4,4,
+                    5,5,5,5,
+                    6,6,6,6,
+                    7,7,7,7,
+                    8,8,8,8,
+                    9,9,9,9,
+                });
+
+            //Serialize then deserialize bin
+            string json = origBin.ToJson();
+            var newBin = Bin.FromJson(json);
+
+            //Check
+            Assert.Equal(origBin.BinID, newBin.BinID);
+            Assert.Equal(origBin.Low, newBin.Low);
+            Assert.Equal(origBin.High, newBin.High);
+            Assert.Equal(origBin.MinPointsForAction, newBin.MinPointsForAction);
+            
+            Assert.Equal(origBin.Count, newBin.Count);
+            Assert.Equal(origBin.Sum, newBin.Sum);
+            Assert.Equal(origBin.SquareSum, newBin.SquareSum);
+            Assert.Equal(origBin.Average, newBin.Average);
+            Assert.Equal(origBin.StandardDeviation, newBin.StandardDeviation);
+
+            Assert.Equal(origBin.Count1StdDev, newBin.Count1StdDev);
+            Assert.Equal(origBin.Percent1StdDev, newBin.Percent1StdDev);
+
+            Assert.Equal(origBin.StdDevsNeg, newBin.StdDevsNeg);
+            Assert.Equal(origBin.StdDevsPos, newBin.StdDevsPos);
+            Assert.Equal(origBin.StdDevsNegCount, newBin.StdDevsNegCount);
+            Assert.Equal(origBin.StdDevsPosCount, newBin.StdDevsPosCount);
+            Assert.Equal(origBin.StdDevsNegPercent, newBin.StdDevsNegPercent);
+            Assert.Equal(origBin.StdDevsPosPercent, newBin.StdDevsPosPercent);
+            Assert.Equal(origBin.StdDevsCount, newBin.StdDevsCount);
+            Assert.Equal(origBin.StdDevsPercent, newBin.StdDevsPercent);
+
+            Assert.Equal(origBin.InnerBins, newBin.InnerBins);
+            Assert.Equal(origBin.InnerBinsCount, newBin.InnerBinsCount);
+            Assert.Equal(origBin.InnerBinsPercent, newBin.InnerBinsPercent);
+
+            Assert.Equal(origBin, newBin);
+        }
         #endregion
 
         #region Statistics
         [Fact]
         public void Sum_2223444_21()
         {
-            Bin theBin = new Bin();
+            Bin theBin = new Bin(0, 10);
             theBin.AddValues(new List<double> { 2, 2, 2, 3, 4, 4, 4 });
 
             double result = theBin.Sum;
@@ -42,7 +93,7 @@ namespace Discretization.Tests
         [Fact]
         public void SquareSum_2223444_69()
         {
-            Bin theBin = new Bin();
+            Bin theBin = new Bin(0,10);
             theBin.AddValues(new List<double> { 2, 2, 2, 3, 4, 4, 4 });
 
             double result = theBin.SquareSum;
@@ -53,7 +104,7 @@ namespace Discretization.Tests
         [Fact]
         public void Average_Empty_PosInf()
         {
-            Bin theBin = new Bin();
+            Bin theBin = new Bin(0,10);
 
             double result = theBin.Average;
 
@@ -62,7 +113,7 @@ namespace Discretization.Tests
         [Fact]
         public void Average_2223444_3()
         {
-            Bin theBin = new Bin();
+            Bin theBin = new Bin(0,10);
             theBin.AddValues(new List<double> { 2, 2, 2, 3, 4, 4, 4 });
 
             double result = theBin.Average;
@@ -73,7 +124,7 @@ namespace Discretization.Tests
         [Fact]
         public void StandardDeviation_Empty_PosInf()
         {
-            Bin theBin = new Bin();
+            Bin theBin = new Bin(0,10);
 
             double result = theBin.StandardDeviation;
 
@@ -82,7 +133,7 @@ namespace Discretization.Tests
         [Fact]
         public void StandardDeviation_2223444_1()
         { 
-            Bin theBin = new Bin();
+            Bin theBin = new Bin(0,10);
             theBin.AddValues(new List<double> { 2, 2, 2, 3, 4, 4, 4 });
 
             double result = theBin.StandardDeviation;
@@ -191,7 +242,7 @@ namespace Discretization.Tests
         [Fact]
         public void PickAction_LessThanMinDataPoints_InsufficientData()
         {
-            Bin theBin = new Bin(0, 10, 3);
+            Bin theBin = new Bin(0, 10);
             theBin.MinPointsForAction = 10;
             theBin.AddValues(new List<double> {
                 3.2,
@@ -212,14 +263,13 @@ namespace Discretization.Tests
             // Avg-nSigma > Low
             // Avg+nSigma < High
 
-            Bin theBin = new Bin(0, 10, 3);
-            theBin.MinPointsForAction = 3;
+            Bin theBin = new Bin(0, 10);
             theBin.AddValues(new List<double> {
-                3.2,
-                4.0,
-                5.0,
-                6.0,
-                6.8,
+                3,
+                4,4,4,
+                5,5,5,5,5, 5,5,5,5,5, 5,5,5,5,5,
+                6,4,4,
+                7
             });
             theBin.Count1StdDev = theBin.Count; //This is to override the check for a flat distribution. Ideally, a better dataset should be used for testing.
      
@@ -234,8 +284,7 @@ namespace Discretization.Tests
             // Avg-nSigma < Low
             // Avg+nSigma > High
 
-            Bin theBin = new Bin(0, 10, 3);
-            theBin.MinPointsForAction = 3;
+            Bin theBin = new Bin(0, 10);
             theBin.AddValues(new List<double> {
                 2.0,
                 3.0,
@@ -249,20 +298,19 @@ namespace Discretization.Tests
             Assert.Equal(BinAction.SplitAtAvg, result);
         }
         [Fact]
-        public void PickAction_LowEqualsNegInfAndNSigmaBelowHigh_Split()
+        public void PickAction_LowIsNegInfAndPos6SigmaBelowHigh_Split()
         {
             // Test
             // Low = -Inf
             // Avg+nSigma < High
 
-            Bin theBin = new Bin(double.NegativeInfinity, 10, 3);
-            theBin.MinPointsForAction = 3;
+            Bin theBin = new Bin(double.NegativeInfinity, 10);
             theBin.AddValues(new List<double> {
-                1.0,
-                2.0,
-                3.0,
-                4.0,
-                5.0,
+                1,
+                2,2,2,
+                3,3,3,3,3,
+                4,4,4,
+                5,
             });
 
             BinAction result = theBin.PickAction();
@@ -270,62 +318,39 @@ namespace Discretization.Tests
             Assert.Equal(BinAction.SplitAtNegNSigma, result);
         }
         [Fact]
-        public void PickAction_NSigmaAboveLowAndHighEqualsPosInf_Split()
+        public void PickAction_Neg6SigmaAboveLowAndHighEqualsPosInf_Split()
         {
             // Test
             // Avg-nSigma > Low
             // High = +Inf
 
-            Bin theBin = new Bin(0, double.PositiveInfinity, 3);
-            theBin.MinPointsForAction = 3;
+            Bin theBin = new Bin(0, double.PositiveInfinity);
             theBin.AddValues(new List<double> {
-                5.0,
-                6.0,
-                7.0,
-                8.0,
-                9.0,
+                5,
+                6,6,6,
+                7,7,7,7,7,
+                8,8,8,
+                9,
             });
 
             BinAction result = theBin.PickAction();
 
             Assert.Equal(BinAction.SplitAtPosNSigma, result);
         }
-        //[Fact]
-        //public void PickAction_LowEqualsNegInfAndHighEqualsPosInf_Split()
-        //{
-        //    // Test
-        //    // Low = -Inf
-        //    // High = +Inf
-
-        //    Bin theBin = new Bin(double.NegativeInfinity, double.PositiveInfinity, 3);
-        //    theBin.MinPointsForAction = 3;
-        //    theBin.AddValues(new List<double> {
-        //        2.0,
-        //        3.0,
-        //        5.0,
-        //        7.0,
-        //        8.0,
-        //    });
-
-        //    BinAction result = theBin.PickAction();
-
-        //    Assert.Equal(BinAction.Split, result);
-        //}
         [Fact]
-        public void PickAction_NSigmaAboveLowAndNSigmaAboveHigh_MergeHigh()
+        public void PickAction_Neg6SigmaAboveLowAndPos6SigmaAboveHigh_MergeHigh()
         {
             // Test
             // Avg-nSigma > Low
             // Avg+nSigma > High
 
-            Bin theBin = new Bin(0, 10, 3);
-            theBin.MinPointsForAction = 3;
+            Bin theBin = new Bin(0, 10);
             theBin.AddValues(new List<double> {
-                5.0,
-                6.0,
-                7.0,
-                8.0,
-                9.0,
+                5,
+                6,6,6,
+                7,7,7,7,7,
+                8,8,8,
+                9,
             });
             theBin.Count1StdDev = theBin.Count; //This is to override the check for a flat distribution. Ideally, a better dataset should be used for testing.
             
@@ -334,20 +359,19 @@ namespace Discretization.Tests
             Assert.Equal(BinAction.MergeHigh, result);
         }
         [Fact]
-        public void PickAction_NSigmaBelowLowAndNSigmaBelowHigh_MergeLow()
+        public void PickAction_Neg6SigmaBelowLowAndPos6SigmaBelowHigh_MergeLow()
         {
             // Test
             // Avg-nSigma < Low
             // Avg+nSigma < High
 
-            Bin theBin = new Bin(0, 10, 3);
-            theBin.MinPointsForAction = 3;
+            Bin theBin = new Bin(0, 10);
             theBin.AddValues(new List<double> {
-                1.0,
-                2.0,
-                3.0,
-                4.0,
-                5.0,
+                1,
+                2,2,2,
+                3,3,3,3,3,
+                4,4,4,
+                5,
             });
             theBin.Count1StdDev = theBin.Count; //This is to override the check for a flat distribution. Ideally, a better dataset should be used for testing.
 
