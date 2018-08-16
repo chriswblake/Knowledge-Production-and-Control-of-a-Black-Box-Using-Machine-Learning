@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace KnowledgeProduction
 {
-    public class Identifier
+    public class Producer
     {
         //Fields
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -25,7 +25,7 @@ namespace KnowledgeProduction
         private int _lastID = 0;
 
         //Constructors
-        public Identifier()
+        public Producer()
         {
             //Default ID generator.
             GenerateIdDelegate = delegate ()
