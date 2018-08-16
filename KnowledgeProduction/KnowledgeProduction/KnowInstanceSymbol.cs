@@ -17,12 +17,12 @@ namespace KnowledgeProduction
             } }
 
         //Constructor
-        public KnowInstanceSymbol(List<KnowInstance> knowInstances)
+        public KnowInstanceSymbol(int id, List<KnowInstance> knowInstances) : base(id)
         {
             foreach (KnowInstance ki in knowInstances)
                 _content.Add(ki);
         }
-        public KnowInstanceSymbol(KnowInstance instanceA, KnowInstance instanceB)
+        public KnowInstanceSymbol(int id, KnowInstance instanceA, KnowInstance instanceB) : base(id)
         {
             _content.Add(instanceA);
             _content.Add(instanceB);

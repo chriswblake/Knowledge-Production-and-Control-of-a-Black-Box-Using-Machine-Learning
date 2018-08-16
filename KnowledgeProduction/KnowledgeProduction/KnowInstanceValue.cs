@@ -20,7 +20,7 @@ namespace KnowledgeProduction
         }
 
         //Constructor
-        public KnowInstanceValue(object value)
+        public KnowInstanceValue(int id, object value) : base(id)
         {
             this._value = value;
         }

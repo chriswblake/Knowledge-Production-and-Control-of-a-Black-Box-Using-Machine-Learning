@@ -7,15 +7,22 @@ namespace KnowledgeProduction.Tests
 {
     public class IdentifierTests
     {
+        private int _lastID = 0;
+        private int GenerateID()
+        {
+            _lastID++;
+            return _lastID;
+        }
+
         [Fact]
         public void saveInstance_5UniqueItems_Count5()
         {
-            Identifier identifier = new Identifier();
-            KnowInstanceValue c1 = new KnowInstanceValue(1); 
-            KnowInstanceValue c2 = new KnowInstanceValue(2);
-            KnowInstanceValue c3 = new KnowInstanceValue(3);
-            KnowInstanceValue c4 = new KnowInstanceValue(4);
-            KnowInstanceValue c5 = new KnowInstanceValue(5);
+            Identifier identifier = new Identifier() { GenerateIdDelegate = GenerateID };
+            KnowInstanceValue c1 = new KnowInstanceValue(GenerateID(), 1); 
+            KnowInstanceValue c2 = new KnowInstanceValue(GenerateID(), 2);
+            KnowInstanceValue c3 = new KnowInstanceValue(GenerateID(), 3);
+            KnowInstanceValue c4 = new KnowInstanceValue(GenerateID(), 4);
+            KnowInstanceValue c5 = new KnowInstanceValue(GenerateID(), 5);
 
             identifier.SaveInstance(c1);
             identifier.SaveInstance(c2);
@@ -30,11 +37,11 @@ namespace KnowledgeProduction.Tests
         public void SaveInstance_5RepeatedItems_Count5()
         {
             Identifier identifier = new Identifier();
-            KnowInstanceValue c1 = new KnowInstanceValue(1);
-            KnowInstanceValue c2 = new KnowInstanceValue(2);
-            KnowInstanceValue c3 = new KnowInstanceValue(3);
-            KnowInstanceValue c4 = new KnowInstanceValue(4);
-            KnowInstanceValue c5 = new KnowInstanceValue(5);
+            KnowInstanceValue c1 = new KnowInstanceValue(GenerateID(), 1);
+            KnowInstanceValue c2 = new KnowInstanceValue(GenerateID(), 2);
+            KnowInstanceValue c3 = new KnowInstanceValue(GenerateID(), 3);
+            KnowInstanceValue c4 = new KnowInstanceValue(GenerateID(), 4);
+            KnowInstanceValue c5 = new KnowInstanceValue(GenerateID(), 5);
 
             identifier.SaveInstance(c1);
             identifier.SaveInstance(c2);
@@ -55,11 +62,11 @@ namespace KnowledgeProduction.Tests
         public void SaveSequence_Pattern_Count9()
         {
             Identifier identifier = new Identifier();
-            KnowInstanceValue c1 = new KnowInstanceValue(1);
-            KnowInstanceValue c2 = new KnowInstanceValue(2);
-            KnowInstanceValue c3 = new KnowInstanceValue(3);
-            KnowInstanceValue c4 = new KnowInstanceValue(4);
-            KnowInstanceValue c5 = new KnowInstanceValue(5);
+            KnowInstanceValue c1 = new KnowInstanceValue(GenerateID(), 1);
+            KnowInstanceValue c2 = new KnowInstanceValue(GenerateID(), 2);
+            KnowInstanceValue c3 = new KnowInstanceValue(GenerateID(), 3);
+            KnowInstanceValue c4 = new KnowInstanceValue(GenerateID(), 4);
+            KnowInstanceValue c5 = new KnowInstanceValue(GenerateID(), 5);
             List<KnowInstance> inputStream = new List<KnowInstance> {
                 c1,
                    c2,
@@ -86,11 +93,11 @@ namespace KnowledgeProduction.Tests
         public void Learn_LinearRampPattern_Count15()
         {
             Identifier identifier = new Identifier();
-            KnowInstanceValue c1 = new KnowInstanceValue(1);
-            KnowInstanceValue c2 = new KnowInstanceValue(2);
-            KnowInstanceValue c3 = new KnowInstanceValue(3);
-            KnowInstanceValue c4 = new KnowInstanceValue(4);
-            KnowInstanceValue c5 = new KnowInstanceValue(5);
+            KnowInstanceValue c1 = new KnowInstanceValue(GenerateID(), 1);
+            KnowInstanceValue c2 = new KnowInstanceValue(GenerateID(), 2);
+            KnowInstanceValue c3 = new KnowInstanceValue(GenerateID(), 3);
+            KnowInstanceValue c4 = new KnowInstanceValue(GenerateID(), 4);
+            KnowInstanceValue c5 = new KnowInstanceValue(GenerateID(), 5);
             List<KnowInstance> inputStream = new List<KnowInstance> {
                 c1,
                    c2,
@@ -120,8 +127,8 @@ namespace KnowledgeProduction.Tests
         public void Learn_OnOffPattern_Count4()
         {
             Identifier identifier = new Identifier();
-            KnowInstanceValue c1 = new KnowInstanceValue(0.0);
-            KnowInstanceValue c2 = new KnowInstanceValue(1.0);
+            KnowInstanceValue c1 = new KnowInstanceValue(GenerateID(), (0));
+            KnowInstanceValue c2 = new KnowInstanceValue(GenerateID(), (1));
             List<KnowInstance> inputData = new List<KnowInstance> {
                 c1,
                 c1,

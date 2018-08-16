@@ -18,15 +18,33 @@ namespace KnowledgeProduction
             }
         }
 
-        private KnowInstance prevInstance = null;
+        //Properties
+        public Func<int> GenerateIdDelegate { get; set; } 
 
-        //Methods        
+        //Cache - Properties
+        private int _lastID = 0;
+
+        //Constructors
+        public Identifier()
+        {
+            //Default ID generator.
+            GenerateIdDelegate = delegate ()
+            {
+                _lastID++;
+                return _lastID;
+            };
+        }
+
+        //Methods   
+        private int GenerateId()
+        {
+            return GenerateIdDelegate();
+        }
         public void Learn(KnowInstance theInstance)
         {
             SaveInstance(theInstance);
             SaveSequence(theInstance);
         }
-        
         public void SaveInstance(KnowInstance theInstance)
         {
             //If not known, add it to the the list of known items.
@@ -35,18 +53,22 @@ namespace KnowledgeProduction
         }
         public void SaveSequence(KnowInstance theInstance)
         {
-            if (prevInstance != null)
+            if (_prevInstance != null)
             { 
                 //Generate theoretical pair hashcode
-                int key = KnowInstanceSymbol.GetTheoreticalHashCode(prevInstance, theInstance);
+                int key = KnowInstanceSymbol.GetTheoreticalHashCode(_prevInstance, theInstance);
 
                 //If id does not exist, created it and return it.
                 if (!knowInstances.ContainsKey(key))
-                    SaveInstance(new KnowInstanceSymbol(prevInstance, theInstance));
+                    SaveInstance(new KnowInstanceSymbol(GenerateId(), _prevInstance, theInstance));
             }
 
             //Shift current instance to previous instances
-            prevInstance = theInstance;
+            _prevInstance = theInstance;
         }
+
+        //Cache - Methods
+        private KnowInstance _prevInstance = null;
+
     }
 }
