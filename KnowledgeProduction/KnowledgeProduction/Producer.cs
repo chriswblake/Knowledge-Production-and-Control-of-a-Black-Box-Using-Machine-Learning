@@ -40,18 +40,23 @@ namespace KnowledgeProduction
         {
             return GenerateIdDelegate();
         }
+        public void Learn(int id, object value)
+        {
+            KnowInstanceValue kiv = new KnowInstanceValue(id, value);
+            Learn(kiv);
+        }
         public void Learn(KnowInstance theInstance)
         {
             SaveInstance(theInstance);
             SaveSequence(theInstance);
         }
-        public void SaveInstance(KnowInstance theInstance)
+        protected void SaveInstance(KnowInstance theInstance)
         {
             //If not known, add it to the the list of known items.
             if (!knowInstances.ContainsKey(theInstance.GetHashCode()))
                 knowInstances.Add(theInstance.GetHashCode(), theInstance);
         }
-        public void SaveSequence(KnowInstance theInstance)
+        protected void SaveSequence(KnowInstance theInstance)
         {
             if (_prevInstance != null)
             { 

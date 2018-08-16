@@ -2,9 +2,23 @@
 using Xunit;
 using KnowledgeProduction;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace KnowledgeProduction.Tests
 {
+    //Make the protected methods public for testing.
+    public class Producer : KnowledgeProduction.Producer
+    {
+        new public void SaveInstance(KnowInstance theInstance)
+        {
+            base.SaveInstance(theInstance);
+        }
+        new public void SaveSequence(KnowInstance theInstance)
+        {
+            base.SaveSequence(theInstance);
+        }
+    }
+
     public class ProducerTests
     {
         private int _lastID = 0;
@@ -23,7 +37,7 @@ namespace KnowledgeProduction.Tests
             KnowInstanceValue c3 = new KnowInstanceValue(GenerateID(), 3);
             KnowInstanceValue c4 = new KnowInstanceValue(GenerateID(), 4);
             KnowInstanceValue c5 = new KnowInstanceValue(GenerateID(), 5);
-
+            
             identifier.SaveInstance(c1);
             identifier.SaveInstance(c2);
             identifier.SaveInstance(c3);
