@@ -8,12 +8,19 @@ namespace Discretization.Tests
 {
     public class DiscretizerTest
     {
+        private int _lastID = 0;
+        private int GenerateID()
+        {
+            _lastID++;
+            return _lastID;
+        }
+
         [Fact]
         public void Constructor_NoInputs_HasInitialBin()
         {
             var disc = new Discretizer();
 
-            Assert.Equal(disc.Bins.Count, 1);
+            Assert.Single(disc.Bins);
             Assert.Equal(disc.Bins[0].Low, double.NegativeInfinity);
             Assert.Equal(disc.Bins[0].High, double.PositiveInfinity);
         }
@@ -22,9 +29,9 @@ namespace Discretization.Tests
         {
             Discretizer disc = new Discretizer();
             disc.Bins.Clear();
-            Bin bin1 = new Bin(double.NegativeInfinity, -10);
-            Bin bin2 = new Bin(-10, 10);
-            Bin bin3 = new Bin(10, double.PositiveInfinity);
+            Bin bin1 = new Bin(GenerateID(), double.NegativeInfinity, -10);
+            Bin bin2 = new Bin(GenerateID(), -10, 10);
+            Bin bin3 = new Bin(GenerateID(), 10, double.PositiveInfinity);
             bin2.AddValues(new List<double> {
                 2,
                 2,
@@ -51,9 +58,9 @@ namespace Discretization.Tests
         {
             Discretizer disc = new Discretizer();
             disc.Bins.Clear();
-            Bin bin1 = new Bin(double.NegativeInfinity, -10);
-            Bin bin2 = new Bin(-10, 10);
-            Bin bin3 = new Bin(10, double.PositiveInfinity);
+            Bin bin1 = new Bin(GenerateID(), double.NegativeInfinity, -10);
+            Bin bin2 = new Bin(GenerateID(), -10, 10);
+            Bin bin3 = new Bin(GenerateID(), 10, double.PositiveInfinity);
             bin2.AddValues(new List<double> {
                 -2,
                 -2,
@@ -79,9 +86,9 @@ namespace Discretization.Tests
         {
             Discretizer disc = new Discretizer();
             disc.Bins.Clear();
-            Bin bin1 = new Bin(double.NegativeInfinity, 0);
-            Bin bin2 = new Bin(0, 10);
-            Bin bin3 = new Bin(10, double.PositiveInfinity);
+            Bin bin1 = new Bin(GenerateID(), double.NegativeInfinity, 0);
+            Bin bin2 = new Bin(GenerateID(), 0, 10);
+            Bin bin3 = new Bin(GenerateID(), 10, double.PositiveInfinity);
             bin2.AddValues(new List<double> {
                 2,
                 2,
@@ -113,9 +120,9 @@ namespace Discretization.Tests
         {
             Discretizer disc = new Discretizer();
             disc.Bins.Clear();
-            Bin bin1 = new Bin(double.NegativeInfinity, 0);
-            Bin bin2 = new Bin(0, 2.5);
-            Bin bin3 = new Bin(2.5, double.PositiveInfinity);
+            Bin bin1 = new Bin(GenerateID(), double.NegativeInfinity, 0);
+            Bin bin2 = new Bin(GenerateID(), 0, 2.5);
+            Bin bin3 = new Bin(GenerateID(), 2.5, double.PositiveInfinity);
             bin2.AddValues(new List<double> {
                 2,
                 2,
@@ -142,10 +149,10 @@ namespace Discretization.Tests
         public void Equals_SameDiscretizers_true()
         {
             var origDisc = new Discretizer();
-            Bin bin1 = new Bin(double.NegativeInfinity, -20);
-            Bin bin2 = new Bin(-20, 2.5);
-            Bin bin3 = new Bin(2.5, 20);
-            Bin bin4 = new Bin(20, double.PositiveInfinity);
+            Bin bin1 = new Bin(GenerateID(), double.NegativeInfinity, -20);
+            Bin bin2 = new Bin(GenerateID(), -20, 2.5);
+            Bin bin3 = new Bin(GenerateID(), 2.5, 20);
+            Bin bin4 = new Bin(GenerateID(), 20, double.PositiveInfinity);
             bin2.AddValues(new List<double> {
                 -1,
                 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
@@ -167,10 +174,10 @@ namespace Discretization.Tests
         public void Equals_DifferentDiscretizers_false()
         {
             var disc1 = new Discretizer();
-            Bin bin1 = new Bin(double.NegativeInfinity, -20);
-            Bin bin2 = new Bin(-20, 2.5);
-            Bin bin3 = new Bin(2.5, 20);
-            Bin bin4 = new Bin(20, double.PositiveInfinity);
+            Bin bin1 = new Bin(GenerateID(), double.NegativeInfinity, -20);
+            Bin bin2 = new Bin(GenerateID(), -20, 2.5);
+            Bin bin3 = new Bin(GenerateID(), 2.5, 20);
+            Bin bin4 = new Bin(GenerateID(), 20, double.PositiveInfinity);
             bin2.AddValues(new List<double> {
                 -1,
                 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
@@ -185,10 +192,10 @@ namespace Discretization.Tests
             disc1.Bins.AddRange(new List<Bin> { bin1, bin2, bin3, bin4 });
 
             var disc2 = new Discretizer();
-            Bin bin21 = new Bin(double.NegativeInfinity, -20);
-            Bin bin22 = new Bin(-20, 2.5);
-            Bin bin23 = new Bin(2.5, 20);
-            Bin bin24 = new Bin(20, double.PositiveInfinity);
+            Bin bin21 = new Bin(GenerateID(), double.NegativeInfinity, -20);
+            Bin bin22 = new Bin(GenerateID(), -20, 2.5);
+            Bin bin23 = new Bin(GenerateID(), 2.5, 20);
+            Bin bin24 = new Bin(GenerateID(), 20, double.PositiveInfinity);
             bin22.AddValues(new List<double> {
                 -1,
                 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,
@@ -214,10 +221,10 @@ namespace Discretization.Tests
         public void ToJson()
         {
             var origDisc = new Discretizer();
-            Bin bin1 = new Bin(double.NegativeInfinity, -20);
-            Bin bin2 = new Bin(-20, 2.5);
-            Bin bin3 = new Bin(2.5, 20);
-            Bin bin4 = new Bin(20, double.PositiveInfinity);
+            Bin bin1 = new Bin(GenerateID(), double.NegativeInfinity, -20);
+            Bin bin2 = new Bin(GenerateID(), -20, 2.5);
+            Bin bin3 = new Bin(GenerateID(), 2.5, 20);
+            Bin bin4 = new Bin(GenerateID(), 20, double.PositiveInfinity);
             bin2.AddValues(new List<double> {
                 -1,
                 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,

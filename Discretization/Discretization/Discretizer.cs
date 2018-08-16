@@ -10,26 +10,65 @@ namespace Discretization
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public class Discretizer
     {
+        /// <summary>
+        /// Known Issues:
+        /// - When restoring from json, '_lastID' does not update until "GenerateID()"
+        ///   is called at least one time.
+        /// - "GenerateIdDelegate" cannot be saved during serialization (json). As such, it
+        ///    resets to the default method when deserialized.
+        /// </summary>
+
         //Properties
-        public List<Bin> Bins {get; set;} = new List<Bin>() {new Bin()};
+        public List<Bin> Bins {get; set;} 
         public List<Bin> BinsOrderedByLow { get { return this.Bins.OrderBy(p => p.Low).ToList(); }}
-        public List<Bin> BinsFirst10 { get { return BinsOrderedByLow.Take(5).ToList(); } }
-        public List<Bin> BinsLast10 { get { return BinsOrderedByLow.Skip(Bins.Count-5).Take(5).ToList(); } }
+        [JsonIgnore]
+        public Func<int> GenerateIdDelegate { get; set; } 
+
+        //Cache - Properties
+        private int _lastID = 0;
 
         //Constuctors
-        public Discretizer() {}
+        public Discretizer()
+        {
+            //Default ID generator.
+            this.GenerateIdDelegate = delegate ()
+            {
+                _lastID++;
+                return _lastID;
+            };
+
+            //Start with initial bin, which should have limits of +- infinity.
+            this.Bins = new List<Bin>() { new Bin(GenerateId()) };
+        }
         [JsonConstructor]
         private Discretizer(string notUsed)
         {
             //Clear initial bins
             this.Bins = new List<Bin>();
+
+            //Reset ID generator
+            //_lastID = this.Bins.Max(p => p.BinID);
+            this.GenerateIdDelegate = delegate ()
+            {
+                //reset _lastID if called the first time, after restore from json
+                if (_lastID == 0)
+                    if (this.Bins.Count > 0)
+                        _lastID = this.Bins.Max(p => p.BinID);
+
+                _lastID++;
+                return _lastID;
+            };
         }
         public static Discretizer FromJson(string json)
         {
             return JsonConvert.DeserializeObject<Discretizer>(json);
         }
-        
+
         //Methods
+        private int GenerateId()
+        {
+            return GenerateIdDelegate();
+        }
         public Bin GetBin(double value)
         {
             return GetBin(value, true);
@@ -106,8 +145,8 @@ namespace Discretization
 
             //Create bins
             double newMinPointsForAction = 1.05*theBin.MinPointsForAction;
-            Bin binLow = new Bin(theBin.Low, splitPoint) { MinPointsForAction = newMinPointsForAction };
-            Bin binHigh = new Bin(splitPoint, theBin.High) { MinPointsForAction = newMinPointsForAction };
+            Bin binLow = new Bin(GenerateId(), theBin.Low, splitPoint) { MinPointsForAction = newMinPointsForAction };
+            Bin binHigh = new Bin(GenerateId(), splitPoint, theBin.High) { MinPointsForAction = newMinPointsForAction };
 
             //Check if data statistics can be kept
             if (binLow.Low <= theBin.StdDevsNeg[6] && binLow.High > theBin.StdDevsPos[6])
@@ -144,7 +183,7 @@ namespace Discretization
             newMinPointsForAction *= 1.05;
 
             //Create Bin
-            Bin combinedBin = new Bin(newLow, newHigh) { MinPointsForAction = newMinPointsForAction };
+            Bin combinedBin = new Bin(GenerateId(), newLow, newHigh) { MinPointsForAction = newMinPointsForAction };
 
             //Combine data
             if(keepStatistics)
@@ -172,10 +211,10 @@ namespace Discretization
             //Check null
             if(obj == null) return false;
 
-            //Check that it is a Bin
+            //Check that it is correct type
             if(obj.GetType() != typeof(Discretizer)) return false;
             
-            //Convert to a Bin
+            //Convert to correct type
             Discretizer that = (Discretizer) obj;
 
             //Check all properties

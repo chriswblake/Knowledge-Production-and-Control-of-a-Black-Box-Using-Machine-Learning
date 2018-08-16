@@ -292,7 +292,11 @@ namespace Discretization
 
         //Constructors
         public Bin() { }
-        public Bin(double low, double high)
+        public Bin(int binID)
+        {
+            this.BinID = binID;
+        }
+        public Bin(int binID, double low, double high) :this(binID)
         {
             this.Low = low;
             this.High = high;
@@ -384,9 +388,9 @@ namespace Discretization
         //Support
         public Bin Clone()
         {
-            Bin c = new Bin()
+            Bin c = new Bin(this.BinID)
             {
-                BinID = BinID,
+                //BinID = BinID,
                 Low = this.Low,
                 High = this.High,
                 MinPointsForAction = this.MinPointsForAction,
