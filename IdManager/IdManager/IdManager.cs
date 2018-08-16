@@ -3,26 +3,27 @@ using System.IO;
 
 namespace IdManager
 {
-    public static class IdManager
+    public class IdManager
     {
         //Properties
-        private static int LastUsedID { get; set; }
-        private static object newIdLock = new object();
+        private int _lastID { get; set; }
+        private object newIdLock = new object();
 
         //Constructors
-        static IdManager()
+        public IdManager()
         {
-            //Load previous id information
-            LastUsedID = 0;
+            //Start for now with zero. Later it would be better to load externally
+            //so it is not lost during reset.
+            _lastID = 0;
         }
 
         //Methods
-        public static int GetNewId()
+        public int GenerateId()
         {
             lock(newIdLock)
             {
-                LastUsedID++;
-                return LastUsedID; 
+                _lastID++;
+                return _lastID; 
             }
         }
     }
