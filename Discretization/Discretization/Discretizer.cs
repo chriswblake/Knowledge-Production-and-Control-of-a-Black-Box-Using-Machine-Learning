@@ -64,24 +64,23 @@ namespace Discretization
             return JsonConvert.DeserializeObject<Discretizer>(json);
         }
 
-        //Methods
+        //Methods - Operation
+        public Bin GetBin(double value)
+        {
+            Bin theBin = Bins.Find(p => value >= p.Low && value < p.High); //inclusive low. exclusive high
+            return theBin;
+        }
+
+        //Methods - Learning
         private int GenerateId()
         {
             return GenerateIdDelegate();
         }
-        public Bin GetBin(double value)
-        {
-            return GetBin(value, true);
-        }
-        public Bin GetBin(double value, bool enableTraining)
+        public Bin Learn(double value)
         {
             //Find appropriate bin
-            Bin theBin = Bins.Find(p => value >= p.Low && value < p.High); //inclusive low. exclusive high
-
-            //Return the bin if not training
-            if(!enableTraining)
-                return theBin;
-
+            Bin theBin = this.GetBin(value);
+            
             //Add this value to that bin
             theBin.AddValue(value);
 
@@ -129,9 +128,9 @@ namespace Discretization
                     }
                     break;
             }
-            
+
             //Log bin development
-            if(LogDevelopment)
+            if (LogDevelopment)
                 DevelopmentHistory.Add(new HistoryItem(this.Bins, theBin, theAction, value));
 
             //Return that bin as the selected bin
@@ -231,6 +230,10 @@ namespace Discretization
         }
 
         //Debug
+        public override string ToString()
+        {
+            return DebuggerDisplay;
+        }
         public string DebuggerDisplay
         {
             get
@@ -238,7 +241,7 @@ namespace Discretization
                 return string.Format("Bins={0}", Bins.Count);
             }
         }
-        public bool LogDevelopment = true;
+        public bool LogDevelopment = false;
         public List<HistoryItem> DevelopmentHistory = new List<HistoryItem>();
         public List<HistoryItem> DevelopmentHistory_NoWaiting
         {
