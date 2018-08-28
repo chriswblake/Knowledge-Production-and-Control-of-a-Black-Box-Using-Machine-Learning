@@ -38,7 +38,7 @@ namespace Discretization.Experiments
         public static Bin OneValueTightExample()
         {
             //Create bins
-            Bin theBin = new Bin(0, 10);
+            Bin theBin = new Bin(5922, 0, 10); //5922 is just some number, because it requires an ID.
             for(int i=0; i<100; i++)
                 theBin.AddValues(new List<double>() {
                     //2,2,
@@ -53,8 +53,8 @@ namespace Discretization.Experiments
         public static Bin OneValueLooseExample()
         {
             //Create bins
-            Bin theBin = new Bin(0, 10);
-            for(int i=0; i<100; i++)
+            Bin theBin = new Bin(5922, 0, 10); //5922 is just some number, because it requires an ID.
+            for (int i=0; i<100; i++)
                 theBin.AddValues(new List<double>() {
                     //1,1,1,1,1,1,1,1,1,1,1,
                     //2,2,2,2,2,2,2,2,2,2,2,
