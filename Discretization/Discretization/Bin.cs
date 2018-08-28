@@ -369,7 +369,7 @@ namespace Discretization
                 return BinAction.SplitAtPosNSigma;
 
             //Split: Distribution is too flat.
-            if (Percent1StdDev < 0.60) //Ideally this should be 68.1% since it is looking for a gaussian distribution.
+            if (Percent1StdDev < 0.60 && Math.Round(this.StandardDeviation, 6) > 0) //Ideally this should be 68.1% since it is looking for a gaussian distribution.
                 return BinAction.SplitAtAvg;
 
 
@@ -447,8 +447,14 @@ namespace Discretization
             if(!that.InnerBinsCount.SequenceEqual(this.InnerBinsCount)) return false;
             if(!that.InnerBinsPercent.SequenceEqual(this.InnerBinsPercent)) return false;
 
+            if(!that.GetHashCode().Equals(this.GetHashCode())) return false;
+
             //Passed all tests
             return true;
+        }
+        public override int GetHashCode()
+        {
+            return string.Format("[{0},{1}]", this.Low, this.High).GetHashCode();
         }
 
         //Debug

@@ -267,7 +267,7 @@ namespace Discretization.Tests
                 List<double> x_noisy = GenerateNoisyData(x_crisp, maxNoise, 1).OrderBy(p=> rand.NextDouble()).ToList();
                 //Add all values to discretizer
                 foreach (double x in x_noisy)
-                    disc.GetBin(x);
+                    disc.Learn(x);
             }
 
             //Check
@@ -277,6 +277,13 @@ namespace Discretization.Tests
 
         [Theory]
         //[InlineData(0.00)] //This is an interesting case. In theory it should never happen, because all values have noise. It creates extra bins between the values. As such it fails.
+        //[InlineData(0.000000001)]
+        //[InlineData(0.00000001)]
+        //[InlineData(0.0000001)]
+        //[InlineData(0.000001)] // Fails below this amount. Maybe statistics mess up.
+        [InlineData(0.00001)]
+        [InlineData(0.0001)]
+        [InlineData(0.001)]
         [InlineData(0.01)]
         [InlineData(0.10)]
         [InlineData(0.20)]
@@ -292,7 +299,7 @@ namespace Discretization.Tests
             {
                 List<double> x_noisy = GenerateNoisyData(x_crisp, maxNoise, 1);
                 foreach (double x in x_noisy)
-                    disc.GetBin(x);
+                    disc.Learn(x);
             }
 
             //Check
@@ -323,8 +330,54 @@ namespace Discretization.Tests
             Assert.InRange(max, double.NegativeInfinity, x_crisp+maxNoise);
             Assert.InRange(avg, x_crisp-0.1*stdDev, x_crisp+0.1*stdDev);
             //Assert.InRange(stdDev, 0.01, 0.01);
-            Assert.InRange(stdDev1_Percent, 0.65, 0.70);
+            Assert.InRange(stdDev1_Percent, 0.65, 0.71);
         }
+
+        [Theory]
+        [InlineData(100)]
+        [InlineData(1000)]
+        [InlineData(10000)]
+        [InlineData(15000)] // This almost always passes.
+        [InlineData(20000)] // This always passes, which means sometimes it just takes a while to converge.
+        public void GetBins_SinFunction_SeeAssert(int iterations)
+        {
+            Random rand = new Random();
+            Random rand2 = new Random();
+            List<double> inputs = new List<double> {
+                Math.PI * 0.1,
+                Math.PI * 0.2,
+                Math.PI * 0.3,
+                Math.PI * 0.4,
+                Math.PI * 0.5,
+                Math.PI * 0.6,
+                Math.PI * 0.7,
+                Math.PI * 0.8,
+                Math.PI * 0.9,
+                Math.PI * 1.0
+            };
+            Discretizer discInput = new Discretizer();
+            Discretizer discOutput = new Discretizer();
+
+
+            for (int i=0; i<iterations; i++)
+            {
+                //double x_crisp = inputs[i%inputs.Count];
+                double x_crisp = inputs[rand.Next(0,10)];
+                double x_noisy = GenerateNoisyValue(rand2, x_crisp, 0.001);
+                double y = Math.Sin(x_crisp);
+
+                discInput.Learn(x_noisy);
+                discOutput.Learn(y);
+            }
+
+            var binsInput = discInput.BinsOrderedByLow;
+            var binsOutput = discOutput.BinsOrderedByLow;
+
+
+            Assert.Equal(12, discInput.Bins.Count);
+            Assert.Equal(8, discOutput.Bins.Count);
+        }
+
 
         //Methods
         public List<double> GenerateNoisyData(List<int> x_crisp, double maxNoise, int numPerCrispValue)
@@ -347,6 +400,12 @@ namespace Discretization.Tests
             }
 
             return x_noisy;
+        }
+        public static double GenerateNoisyValue(Random random, double value_crisp, double maxNoise)
+        {
+            double factor = SampleGaussian(random, 0, 1.0 / 6.0); //Generates a value between 0 and 1. We know that 6 sigma covers 99.999999% of values. So, 1/6 std dev results in -1 to 1.
+            double value_noisy = (value_crisp + factor * maxNoise);
+            return value_noisy;
         }
         public static double SampleGaussian(Random random, double mean, double stddev)
         {
