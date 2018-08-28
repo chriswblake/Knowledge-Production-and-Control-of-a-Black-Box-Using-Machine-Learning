@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace IdManager
+namespace IdManagement
 {
     public class IdManager
     {

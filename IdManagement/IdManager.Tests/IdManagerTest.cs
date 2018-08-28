@@ -1,16 +1,17 @@
 using System;
 using Xunit;
-using IdManager;
+using IdManagement;
 
-namespace IdManager.Tests
+namespace IdManagement.Tests
 {
     public class IdManagerTest
     {
         [Fact]
         public void GetNewId_2TwoRequests_SecondIsGreater()
         {
-            var id1 = IdManager.GetNewId();
-            var id2 = IdManager.GetNewId();
+            var idManager = new IdManager();
+            var id1 = idManager.GenerateId();
+            var id2 = idManager.GenerateId();
 
             var result = id2 > id1;
 

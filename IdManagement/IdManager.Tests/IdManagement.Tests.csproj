@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\IdManager\IdManager.csproj" />
+    <ProjectReference Include="..\IdManager\IdManagement.csproj" />
   </ItemGroup>
 
 </Project>
