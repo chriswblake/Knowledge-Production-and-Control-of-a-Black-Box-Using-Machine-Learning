@@ -369,7 +369,7 @@ namespace Discretization
                 return BinAction.SplitAtPosNSigma;
 
             //Split: Distribution is too flat.
-            if (Percent1StdDev < 0.60 && Math.Round(this.StandardDeviation, 6) > 0) //Ideally this should be 68.1% since it is looking for a gaussian distribution.
+            if (Percent1StdDev < 0.60 && Math.Round(this.StandardDeviation, 3) > 0) //Ideally this should be 68.1% since it is looking for a gaussian distribution.
                 return BinAction.SplitAtAvg;
 
 
@@ -458,6 +458,10 @@ namespace Discretization
         }
 
         //Debug
+        public override string ToString()
+        {
+            return DebuggerDisplay;
+        }
         public string DebuggerDisplay
         {
             get
