@@ -9,7 +9,7 @@ namespace Discretization.Tests
     {   //MethodName_StateUnderTest_ExpectedBehavior
 
         private int _lastID = 0;
-        private int GenerateID()
+        private int GenerateId()
         {
             _lastID++;
             return _lastID;
@@ -19,7 +19,7 @@ namespace Discretization.Tests
         [Fact]
         public void Bin_EmptyConstructorDefault_LowNegInfHighPosInf()
         {
-            Bin theBin = new Bin(GenerateID());
+            Bin theBin = new Bin(GenerateId());
 
             Assert.Equal(double.NegativeInfinity, theBin.Low);
             Assert.Equal(double.PositiveInfinity, theBin.High);
@@ -27,7 +27,7 @@ namespace Discretization.Tests
         [Fact]
         public void Bin_ConstructorWithValues_Low0High10()
         {
-            Bin theBin = new Bin(GenerateID(), 0, 10);
+            Bin theBin = new Bin(GenerateId(), 0, 10);
 
             Assert.Equal(0, theBin.Low);
             Assert.Equal(10, theBin.High);
@@ -35,7 +35,7 @@ namespace Discretization.Tests
         [Fact]
         public void ToJson_JsonBin_SameBin()
         {
-            var origBin = new Bin(GenerateID(), 0, 10);
+            var origBin = new Bin(GenerateId(), 0, 10);
             for (int i = 0; i < 1000; i++)
                 origBin.AddValues(new List<double> {
                     1,1,1,1,
@@ -89,7 +89,7 @@ namespace Discretization.Tests
         [Fact]
         public void Sum_2223444_21()
         {
-            Bin theBin = new Bin(GenerateID(), 0, 10);
+            Bin theBin = new Bin(GenerateId(), 0, 10);
             theBin.AddValues(new List<double> { 2, 2, 2, 3, 4, 4, 4 });
 
             double result = theBin.Sum;
@@ -100,7 +100,7 @@ namespace Discretization.Tests
         [Fact]
         public void SquareSum_2223444_69()
         {
-            Bin theBin = new Bin(GenerateID(), 0, 10);
+            Bin theBin = new Bin(GenerateId(), 0, 10);
             theBin.AddValues(new List<double> { 2, 2, 2, 3, 4, 4, 4 });
 
             double result = theBin.SquareSum;
@@ -111,7 +111,7 @@ namespace Discretization.Tests
         [Fact]
         public void Average_Empty_PosInf()
         {
-            Bin theBin = new Bin(GenerateID(), 0, 10);
+            Bin theBin = new Bin(GenerateId(), 0, 10);
 
             double result = theBin.Average;
 
@@ -120,7 +120,7 @@ namespace Discretization.Tests
         [Fact]
         public void Average_2223444_3()
         {
-            Bin theBin = new Bin(GenerateID(), 0, 10);
+            Bin theBin = new Bin(GenerateId(), 0, 10);
             theBin.AddValues(new List<double> { 2, 2, 2, 3, 4, 4, 4 });
 
             double result = theBin.Average;
@@ -131,7 +131,7 @@ namespace Discretization.Tests
         [Fact]
         public void StandardDeviation_Empty_PosInf()
         {
-            Bin theBin = new Bin(GenerateID(), 0, 10);
+            Bin theBin = new Bin(GenerateId(), 0, 10);
 
             double result = theBin.StandardDeviation;
 
@@ -140,7 +140,7 @@ namespace Discretization.Tests
         [Fact]
         public void StandardDeviation_2223444_1()
         { 
-            Bin theBin = new Bin(GenerateID(), 0, 10);
+            Bin theBin = new Bin(GenerateId(), 0, 10);
             theBin.AddValues(new List<double> { 2, 2, 2, 3, 4, 4, 4 });
 
             double result = theBin.StandardDeviation;
@@ -153,7 +153,7 @@ namespace Discretization.Tests
         [Fact]
         public void InnerBinsPercent_DataNearHigh_SeeAssert()
         {
-            var theBin = new Bin(GenerateID(), 0, 10);
+            var theBin = new Bin(GenerateId(), 0, 10);
             for(int i=0; i<100; i++)
                 theBin.AddValues(new List<double>() {
                         5,
@@ -174,7 +174,7 @@ namespace Discretization.Tests
         [Fact]
         public void InnerBinsPercent_DataNearLow_SeeAssert()
         {
-            var theBin = new Bin(GenerateID(), 0, 10);
+            var theBin = new Bin(GenerateId(), 0, 10);
             for (int i = 0; i < 1000; i++)
                 theBin.AddValues(new List<double> {
                     1,1,1,1,1,1,1,1,
@@ -195,7 +195,7 @@ namespace Discretization.Tests
         [Fact]
         public void InnerBinsPercent_UShapedDistribution_SeeAssert()
         {
-            var theBin = new Bin(GenerateID(), 0, 10);
+            var theBin = new Bin(GenerateId(), 0, 10);
             for (int i = 0; i < 1000; i++)
                 theBin.AddValues(new List<double> {
                     1,1,1,1,
@@ -220,7 +220,7 @@ namespace Discretization.Tests
         [Fact]
         public void InnerBinsPercent_FlatDistribution_SeeAssert()
         {
-            var theBin = new Bin(GenerateID(), 0, 10);
+            var theBin = new Bin(GenerateId(), 0, 10);
             for (int i = 0; i < 1000; i++)
                 theBin.AddValues(new List<double> {
                     1,1,1,1,
@@ -248,7 +248,7 @@ namespace Discretization.Tests
         [Fact]
         public void PickAction_LessThanMinDataPoints_InsufficientData()
         {
-            Bin theBin = new Bin(GenerateID(), 0, 10);
+            Bin theBin = new Bin(GenerateId(), 0, 10);
             theBin.MinPointsForAction = 10;
             theBin.AddValues(new List<double> {
                 3.2,
@@ -269,7 +269,7 @@ namespace Discretization.Tests
             // Avg-nSigma > Low
             // Avg+nSigma < High
 
-            Bin theBin = new Bin(GenerateID(), 0, 10);
+            Bin theBin = new Bin(GenerateId(), 0, 10);
             theBin.AddValues(new List<double> {
                 3,
                 4,4,4,
@@ -290,7 +290,7 @@ namespace Discretization.Tests
             // Avg-nSigma < Low
             // Avg+nSigma > High
 
-            Bin theBin = new Bin(GenerateID(), 0, 10);
+            Bin theBin = new Bin(GenerateId(), 0, 10);
             theBin.AddValues(new List<double> {
                 2.0,
                 3.0,
@@ -310,7 +310,7 @@ namespace Discretization.Tests
             // Low = -Inf
             // Avg+nSigma < High
 
-            Bin theBin = new Bin(GenerateID(), double.NegativeInfinity, 10);
+            Bin theBin = new Bin(GenerateId(), double.NegativeInfinity, 10);
             theBin.AddValues(new List<double> {
                 1,
                 2,2,2,
@@ -330,7 +330,7 @@ namespace Discretization.Tests
             // Avg-nSigma > Low
             // High = +Inf
 
-            Bin theBin = new Bin(GenerateID(), 0, double.PositiveInfinity);
+            Bin theBin = new Bin(GenerateId(), 0, double.PositiveInfinity);
             theBin.AddValues(new List<double> {
                 5,
                 6,6,6,
@@ -350,7 +350,7 @@ namespace Discretization.Tests
             // Avg-nSigma > Low
             // Avg+nSigma > High
 
-            Bin theBin = new Bin(GenerateID(), 0, 10);
+            Bin theBin = new Bin(GenerateId(), 0, 10);
             theBin.AddValues(new List<double> {
                 5,
                 6,6,6,
@@ -371,7 +371,7 @@ namespace Discretization.Tests
             // Avg-nSigma < Low
             // Avg+nSigma < High
 
-            Bin theBin = new Bin(GenerateID(), 0, 10);
+            Bin theBin = new Bin(GenerateId(), 0, 10);
             theBin.AddValues(new List<double> {
                 1,
                 2,2,2,
@@ -386,5 +386,15 @@ namespace Discretization.Tests
             Assert.Equal(BinAction.MergeLow, result);
         }
         #endregion
+
+        [Fact]
+        public void GetHashCode_2BinsSameLimits_SameHashCodes()
+        {
+            var bin1 = new Bin(GenerateId(), 0, 10);
+            var bin2 = new Bin(GenerateId(), 0, 10);
+
+            Assert.Equal(bin1.GetHashCode(), bin2.GetHashCode());
+
+        }
     }
 }

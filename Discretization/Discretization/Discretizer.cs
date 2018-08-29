@@ -4,6 +4,7 @@ using System.Text;
 using System.Linq;
 using System.Diagnostics;
 using Newtonsoft.Json;
+using static Discretization.DataGeneration;
 
 namespace Discretization
 {
@@ -166,19 +167,22 @@ namespace Discretization
             Bins.Add(binLow);
             Bins.Add(binHigh);
 
+            //Trigger event
+            OnSplitBin(this, new SplitBinEventArgs { OrigBin = theBin, NewBinLow=binLow, NewBinHigh=binHigh });
+
             //Return new bins
             return new List<Bin> {binLow, binHigh};
         }
-        public Bin MergeBins(Bin bin1, Bin bin2)
+        public Bin MergeBins(Bin binLow, Bin binHigh)
         {
-            return MergeBins(bin1, bin2, false);
+            return MergeBins(binLow, binHigh, false);
         }
-        public Bin MergeBins(Bin bin1, Bin bin2, bool keepStatistics)
+        public Bin MergeBins(Bin binLow, Bin binHigh, bool keepStatistics)
         {
             //Get settings for new bin
-            double newLow = Math.Min(bin1.Low, bin2.Low);
-            double newHigh = Math.Max(bin1.High, bin2.High);
-            double newMinPointsForAction = Math.Max(bin1.MinPointsForAction, bin2.MinPointsForAction);
+            double newLow = Math.Min(binLow.Low, binHigh.Low);
+            double newHigh = Math.Max(binLow.High, binHigh.High);
+            double newMinPointsForAction = Math.Max(binLow.MinPointsForAction, binHigh.MinPointsForAction);
             newMinPointsForAction *= 1.05;
 
             //Create Bin
@@ -187,15 +191,18 @@ namespace Discretization
             //Combine data
             if(keepStatistics)
             {
-                combinedBin.Count = bin1.Count + bin2.Count;
+                combinedBin.Count = binLow.Count + binHigh.Count;
                 //combinedBin.Count1StdDev = bin1.Count1StdDev + bin2.Count1StdDev;
-                combinedBin.Sum = bin1.Sum + bin2.Sum;
-                combinedBin.SquareSum = bin1.SquareSum + bin2.SquareSum;
+                combinedBin.Sum = binLow.Sum + binHigh.Sum;
+                combinedBin.SquareSum = binLow.SquareSum + binHigh.SquareSum;
             }
             //Update Bins list
-            Bins.Remove(bin1);
-            Bins.Remove(bin2);
+            Bins.Remove(binLow);
+            Bins.Remove(binHigh);
             Bins.Add(combinedBin);
+
+            //Trigger event
+            OnMergeBins(this, new MergeBinsEventArgs { OrigBinLow = binLow, OrigBinHigh = binHigh, NewBin = combinedBin });
 
             return combinedBin;
         }
@@ -227,6 +234,22 @@ namespace Discretization
 
             //Passed all tests
             return true;
+        }
+
+        //Events
+        public event EventHandler<SplitBinEventArgs> OnSplitBin;
+        public event EventHandler<MergeBinsEventArgs> OnMergeBins;
+        public class SplitBinEventArgs : EventArgs
+        {
+            public Bin OrigBin;
+            public Bin NewBinLow;
+            public Bin NewBinHigh;
+        }
+        public class MergeBinsEventArgs : EventArgs
+        {
+            public Bin OrigBinLow;
+            public Bin OrigBinHigh;
+            public Bin NewBin;
         }
 
         //Debug
