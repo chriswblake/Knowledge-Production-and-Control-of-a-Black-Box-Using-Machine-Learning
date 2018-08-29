@@ -5,11 +5,12 @@ using System.Diagnostics;
 
 namespace KnowledgeProduction
 {
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public class Producer
     {
         //Fields
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private Dictionary<int,KnowInstance> knowInstances = new Dictionary<int, KnowInstance>();
+        private Dictionary<int,KnowInstance> knowInstances = new Dictionary<int, KnowInstance>(); //Stored by hashcode, which is based on content;
         public Dictionary<int,KnowInstance>.ValueCollection KnowInstances
         {
             get
@@ -20,9 +21,6 @@ namespace KnowledgeProduction
 
         //Properties
         public Func<int> GenerateIdDelegate { get; set; } 
-
-        //Cache - Properties
-        private int _lastID = 0;
 
         //Constructors
         public Producer()
@@ -35,20 +33,15 @@ namespace KnowledgeProduction
             };
         }
 
-        //Methods   
-        private int GenerateId()
-        {
-            return GenerateIdDelegate();
-        }
-        public void Learn(int id, object value)
-        {
-            KnowInstanceValue kiv = new KnowInstanceValue(id, value);
-            Learn(kiv);
-        }
+        //Methods - Learning
         public void Learn(KnowInstance theInstance)
         {
             SaveInstance(theInstance);
             SaveSequence(theInstance);
+        }
+        private int GenerateId()
+        {
+            return GenerateIdDelegate();
         }
         protected void SaveInstance(KnowInstance theInstance)
         {
@@ -72,8 +65,34 @@ namespace KnowledgeProduction
             _prevInstance = theInstance;
         }
 
+        //Methods - Updating
+        public void Add(int id, object value)
+        {
+            KnowInstanceValue kiv = new KnowInstanceValue(id, value);
+            SaveInstance(kiv);
+        }
+        public void Remove(int id)
+        {
+            if (knowInstances.ContainsKey(id))
+                knowInstances.Remove(id);
+        }
+
         //Cache - Methods
+        private int _lastID = 0;
         private KnowInstance _prevInstance = null;
+
+        //Debug
+        public override string ToString()
+        {
+            return DebuggerDisplay;
+        }
+        public string DebuggerDisplay
+        {
+            get
+            {
+                return string.Format("KnowInst={0}", this.knowInstances.Count);
+            }
+        }
 
     }
 }

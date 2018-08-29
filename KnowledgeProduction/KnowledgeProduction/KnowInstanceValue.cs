@@ -28,7 +28,8 @@ namespace KnowledgeProduction
         //Methods
         public override int GetHashCode()
         {
-            return this.ID.ToString().GetHashCode();
+            //return this.Content.GetHashCode();
+            return this.ID.GetHashCode();
         }
 
         //Debug
