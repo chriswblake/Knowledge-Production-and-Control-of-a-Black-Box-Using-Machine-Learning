@@ -168,7 +168,7 @@ namespace Discretization
             Bins.Add(binHigh);
 
             //Trigger event
-            OnSplitBin(this, new SplitBinEventArgs { OrigBin = theBin, NewBinLow=binLow, NewBinHigh=binHigh });
+            OnSplitBin?.Invoke(this, new SplitBinEventArgs { OrigBin = theBin, NewBinLow=binLow, NewBinHigh=binHigh });
 
             //Return new bins
             return new List<Bin> {binLow, binHigh};
@@ -202,7 +202,7 @@ namespace Discretization
             Bins.Add(combinedBin);
 
             //Trigger event
-            OnMergeBins(this, new MergeBinsEventArgs { OrigBinLow = binLow, OrigBinHigh = binHigh, NewBin = combinedBin });
+                OnMergeBins?.Invoke(this, new MergeBinsEventArgs { OrigBinLow = binLow, OrigBinHigh = binHigh, NewBin = combinedBin });
 
             return combinedBin;
         }
