@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+using System.Linq;
 
 namespace KnowledgeProduction
 {
@@ -10,15 +11,15 @@ namespace KnowledgeProduction
     {
         //Fields
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private Dictionary<int,KnowInstance> knowInstances = new Dictionary<int, KnowInstance>(); //Stored by hashcode, which is based on content;
-        public Dictionary<int,KnowInstance>.ValueCollection KnowInstances
+        public Dictionary<int,KnowInstance> KnowInstances = new Dictionary<int, KnowInstance>(); //Stored by hashcode, which is based on content;
+        public Dictionary<int,KnowInstance>.ValueCollection KnowInstances2
         {
             get
             {
-                return this.knowInstances.Values;
+                return this.KnowInstances.Values;
             }
         }
-
+        
         //Properties
         public Func<int> GenerateIdDelegate { get; set; } 
 
@@ -32,10 +33,25 @@ namespace KnowledgeProduction
                 return _lastID;
             };
         }
+        //Methods - Usage
+        public KnowInstance Get(int hashcode)
+        {
+            //Check if code is valid
+            if (!KnowInstances.ContainsKey(hashcode)) return null;
+
+            return KnowInstances[hashcode];
+        }
 
         //Methods - Learning
+        public void Learn(List<KnowInstance> knowInstances)
+        {
+            var kis = new KnowInstanceSymbol(GenerateId(), knowInstances);
+            Learn(kis);
+        }
         public void Learn(KnowInstance theInstance)
         {
+            if (theInstance == null) return;
+
             SaveInstance(theInstance);
             SaveSequence(theInstance);
         }
@@ -46,8 +62,8 @@ namespace KnowledgeProduction
         protected void SaveInstance(KnowInstance theInstance)
         {
             //If not known, add it to the the list of known items.
-            if (!knowInstances.ContainsKey(theInstance.GetHashCode()))
-                knowInstances.Add(theInstance.GetHashCode(), theInstance);
+            if (!KnowInstances.ContainsKey(theInstance.GetHashCode()))
+                KnowInstances.Add(theInstance.GetHashCode(), theInstance);
         }
         protected void SaveSequence(KnowInstance theInstance)
         {
@@ -57,7 +73,7 @@ namespace KnowledgeProduction
                 int key = KnowInstanceSymbol.GetTheoreticalHashCode(_prevInstance, theInstance);
 
                 //If id does not exist, created it and return it.
-                if (!knowInstances.ContainsKey(key))
+                if (!KnowInstances.ContainsKey(key))
                     SaveInstance(new KnowInstanceSymbol(GenerateId(), _prevInstance, theInstance));
             }
 
@@ -73,12 +89,25 @@ namespace KnowledgeProduction
         }
         public void Remove(int id)
         {
-            if (knowInstances.ContainsKey(id))
-                knowInstances.Remove(id);
+            //Remove all instances that contain this instance
+            var symbols = KnowInstances.Where(d => d.Value.GetType() == typeof(KnowInstanceSymbol)).ToList(); //Find only symbols
+            symbols = symbols.Where(k => ((KnowInstanceSymbol)k.Value).Contains(id)).ToList(); //Only symobols containing the id
+            foreach (var s in symbols)
+                KnowInstances.Remove(s.Key);
+
+            //Remove the item
+            if (KnowInstances.ContainsKey(id))
+                KnowInstances.Remove(id);
+
+            //Check if stored in cash
+            if (_prevInstance != null && _prevInstance.ID == id)
+                _prevInstance  = null;
         }
 
         //Cache - Methods
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private int _lastID = 0;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private KnowInstance _prevInstance = null;
 
         //Debug
@@ -86,11 +115,12 @@ namespace KnowledgeProduction
         {
             return DebuggerDisplay;
         }
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         public string DebuggerDisplay
         {
             get
             {
-                return string.Format("KnowInst={0}", this.knowInstances.Count);
+                return string.Format("KnowInst={0}", this.KnowInstances.Count);
             }
         }
 

@@ -10,11 +10,23 @@ namespace KnowProdContBlackBox.Tests
 {
     public class DiscreteBlackBoxTests
     {
+        [Fact]
+        public void Constructor_1Bin()
+        {
+            IdManager idManager = new IdManager();
+            BlackBox trigBlackBox = new BlackBoxModeling.Samples.TrigFunctions() { TimeInterval_ms = 10 };
+            DiscreteBlackBox discBlackBox = new DiscreteBlackBox(trigBlackBox, idManager);
+
+            Assert.Single(discBlackBox.Discretizers["x"].Bins);
+            Assert.Single(discBlackBox.Discretizers["sin"].Bins);
+            Assert.Single(discBlackBox.Discretizers["cos"].Bins);
+            Assert.Single(discBlackBox.Discretizers["tan"].Bins);
+        }
+
         [Theory]
-        [InlineData(100)]
         [InlineData(1000)]
-        //[InlineData(5000)]
-        public void LearningThread_sinFunction_LongTest_SeeAssert(int iterations)
+        //[InlineData(5000)] //Not necessary to run so many
+        public void LearningThread_sinFunction_SeeAssert(int iterations)
         {
             List<double> x_values = new List<double> {
                 Math.PI * 0.1,
@@ -28,25 +40,24 @@ namespace KnowProdContBlackBox.Tests
                 Math.PI * 0.9,
                 Math.PI * 1.0
             };
-            BlackBox trigExample = new BlackBoxModeling.Samples.TrigFunctions() { TimeInterval_ms = 10 };
-            DiscreteBlackBox blackBox = new DiscreteBlackBox(trigExample, new IdManager());
+            BlackBox trigBlackBox = new BlackBoxModeling.Samples.TrigFunctions() { TimeInterval_ms = 10 };
+            DiscreteBlackBox discBlackBox = new DiscreteBlackBox(trigBlackBox, new IdManager());
             Random rand = new Random();
-            blackBox.Start();
-
+            trigBlackBox.Start();
 
             for (int i = 0; i < iterations; i++)
             {
                 //Change input
                 double x_crisp = x_values[rand.Next(0, 10)];
-                trigExample.Input["x"] = GenerateNoisyValue(rand, x_crisp, 0.001);
+                trigBlackBox.Input["x"] = GenerateNoisyValue(rand, x_crisp, 0.001);
 
                 //Wait
-                System.Threading.Thread.Sleep(trigExample.TimeInterval_ms);
+                System.Threading.Thread.Sleep(trigBlackBox.TimeInterval_ms);
             }
 
-            Assert.InRange(blackBox.Discretizers["x"].Bins.Count, 12, 14);
-            Assert.InRange(blackBox.Discretizers["sin"].Bins.Count, 8, 10);
-            Assert.InRange(blackBox.Discretizers["cos"].Bins.Count, 12, 14);
+            Assert.InRange(discBlackBox.Discretizers["x"].Bins.Count, 12, 14);
+            Assert.InRange(discBlackBox.Discretizers["sin"].Bins.Count, 8, 10);
+            Assert.InRange(discBlackBox.Discretizers["cos"].Bins.Count, 12, 14);
             //Assert.Equal(12, blackBox.Discretizers["tan"].Bins.Count); This has many values because it goes to infinity.
         }
     }

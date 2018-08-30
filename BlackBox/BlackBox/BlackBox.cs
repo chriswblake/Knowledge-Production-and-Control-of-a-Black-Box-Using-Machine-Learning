@@ -45,7 +45,11 @@ namespace BlackBoxModeling
                     }
                 });
             RunThread.IsBackground = true;
+
+            //Start black box
+            OnStarting?.Invoke(this, new EventArgs()); //trigger pre-start event
             RunThread.Start();
+            OnStarted?.Invoke(this, new EventArgs()); //trigger post-start event
         }
         public void Stop()
         {
@@ -69,6 +73,10 @@ namespace BlackBoxModeling
             output.Add(name, null);
         }
         public abstract void Run();
+
+        //Events
+        public event EventHandler OnStarting;
+        public event EventHandler OnStarted;
 
         //Debug
         public override string ToString()

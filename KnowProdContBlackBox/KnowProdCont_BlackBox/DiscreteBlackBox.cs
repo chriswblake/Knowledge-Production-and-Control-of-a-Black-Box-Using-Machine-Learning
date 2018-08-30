@@ -17,6 +17,61 @@ namespace KnowProdContBlackBox
         public Dictionary<string, Discretizer> Discretizers = new Dictionary<string, Discretizer>();
         private Dictionary<string, Thread> learningThreads = new Dictionary<string, Thread>();
 
+        //Properties
+        public int TimeCurrent_ms
+        {
+            get
+            {
+                return this.blackBox.TimeCurrent_ms;
+            }
+        }
+        public int TimeInterval_ms {
+            get
+            {
+                return this.blackBox.TimeInterval_ms;
+            }
+        }
+        public Dictionary<string, Bin> Input
+        {
+            get
+            {
+                Dictionary<string, Bin> dict = new Dictionary<string, Bin>();
+                foreach (var input in blackBox.Input.ToList())
+                {
+                    Discretizer disc = Discretizers[input.Key];
+                    double value = Convert.ToDouble(blackBox.Input[input.Key]);
+                    Bin bin = disc.GetBin(value);
+                    dict[input.Key] = bin;
+                }
+                return dict;
+            }
+        }
+        public Dictionary<string, Bin> Output
+        {
+            get
+            {
+                Dictionary<string, Bin> dict = new Dictionary<string, Bin>();
+                foreach (var output in blackBox.Output.ToList())
+                {
+                    Discretizer disc = Discretizers[output.Key];
+                    double value = Convert.ToDouble(blackBox.Output[output.Key]);
+                    Bin bin = disc.GetBin(value);
+                    dict[output.Key] = bin;
+                }
+                return dict;
+            }
+        }
+        public event EventHandler OnStarting
+        {
+            add { this.blackBox.OnStarting += value; }
+            remove { this.blackBox.OnStarting -= value; }
+        }
+        public event EventHandler OnStarted
+        {
+            add { this.blackBox.OnStarted += value; }
+            remove { this.blackBox.OnStarted -= value; }
+        }
+
         //Constructor
         public DiscreteBlackBox(BlackBox blackBox, IdManager idManager)
         {
@@ -34,49 +89,23 @@ namespace KnowProdContBlackBox
                 learningThreads.Add(inputName, CreateLearningThread("input", inputName));
             foreach (string outputName in blackBox.Output.Keys)
                 learningThreads.Add(outputName, CreateLearningThread("output", outputName));
+
+            //Subscribe to start event
+            this.blackBox.OnStarting += BlackBox_OnStarting;
         }
 
-        //Methods
-        public Dictionary<string, Bin> Input
-        {
-            get
-            {
-                Dictionary<string, Bin> dict = new Dictionary<string, Bin>();
-                foreach(var input in blackBox.Input)
-                {
-                    Discretizer disc = Discretizers[input.Key];
-                    double value = Convert.ToDouble(blackBox.Input[input.Key]);
-                    Bin bin = disc.GetBin(value);
-                    dict[input.Key] = bin;
-                }
-                return dict;
-            }
-        }
-        public Dictionary<string, Bin> Output
-        {
-            get
-            {
-                Dictionary<string, Bin> dict = new Dictionary<string, Bin>();
-                foreach (var output in blackBox.Output)
-                {
-                    Discretizer disc = Discretizers[output.Key];
-                    double value = Convert.ToDouble(blackBox.Output[output.Key]);
-                    Bin bin = disc.GetBin(value);
-                    dict[output.Key] = bin;
-                }
-                return dict;
-            }
-        }
-
-        //Methods
+        //Methods - Usage
         public void Start()
+        {
+            blackBox.Start();
+        }
+
+        //Methods - Learning
+        private void BlackBox_OnStarting(object sender, EventArgs e)
         {
             //Start learning threads
             foreach (Thread t in learningThreads.Values)
                 t.Start();
-
-            //Start the black box
-            blackBox.Start();
         }
         private Thread CreateLearningThread(string source, string name)
         {
@@ -94,8 +123,6 @@ namespace KnowProdContBlackBox
                 default:
                     throw new InvalidOperationException("'source' parameter must be 'input' or 'output'");
             }
-
-            
 
             //Create the background sampling thread
             Thread samplingThread = new Thread

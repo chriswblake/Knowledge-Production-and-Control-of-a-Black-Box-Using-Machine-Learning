@@ -15,6 +15,18 @@ namespace KnowledgeProduction
             {
                 return _content;
             } }
+        public bool Contains(KnowInstance ki)
+        {
+            return _content.Contains(ki);
+        }
+        public bool Contains(int id)
+        {
+            var result = _content.Find(p => p.ID == id);
+            if (result != null)
+                return true;
+            else
+                return false;
+        }
 
         //Constructor
         public KnowInstanceSymbol(int id, List<KnowInstance> knowInstances) : base(id)
