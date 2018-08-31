@@ -33,6 +33,10 @@ namespace KnowledgeProduction
         }
 
         //Debug
+        public override string ToString()
+        {
+            return DebuggerDisplay;
+        }
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay
         {

@@ -22,96 +22,67 @@ namespace KnowledgeProduction.Tests
     public class ProducerTests
     {
         private int _lastID = 0;
-        private int GenerateID()
+        private int GenerateId()
         {
             _lastID++;
             return _lastID;
         }
 
+        #region Usage
         [Fact]
-        public void saveInstance_5UniqueItems_Count5()
+        public void Get_known_notNull()
         {
-            Producer identifier = new Producer() { GenerateIdDelegate = GenerateID };
-            KnowInstanceValue c1 = new KnowInstanceValue(GenerateID(), 1); 
-            KnowInstanceValue c2 = new KnowInstanceValue(GenerateID(), 2);
-            KnowInstanceValue c3 = new KnowInstanceValue(GenerateID(), 3);
-            KnowInstanceValue c4 = new KnowInstanceValue(GenerateID(), 4);
-            KnowInstanceValue c5 = new KnowInstanceValue(GenerateID(), 5);
-            
-            identifier.SaveInstance(c1);
-            identifier.SaveInstance(c2);
-            identifier.SaveInstance(c3);
-            identifier.SaveInstance(c4);
-            identifier.SaveInstance(c5);
+            Producer prod = new Producer() { GenerateIdDelegate = GenerateId };
+            KnowInstanceValue c1 = new KnowInstanceValue(GenerateId(), 1);
+            KnowInstanceValue c2 = new KnowInstanceValue(GenerateId(), 2);
+            KnowInstanceValue c3 = new KnowInstanceValue(GenerateId(), 3);
+            KnowInstanceValue c4 = new KnowInstanceValue(GenerateId(), 4);
+            KnowInstanceValue c5 = new KnowInstanceValue(GenerateId(), 5);
+            KnowInstanceSymbol c6 = new KnowInstanceSymbol(GenerateId(), new List<KnowInstance> { c1, c2 });
+            prod.SaveInstance(c1);
+            prod.SaveInstance(c2);
+            prod.SaveInstance(c3);
+            prod.SaveInstance(c4);
+            prod.SaveInstance(c5);
+            prod.SaveInstance(c6);
 
-            Assert.Equal(5, identifier.KnowInstances.Count);
+            var result = prod.Get(c1, c2);
+
+            Assert.Equal(c6, result);
         }
-
         [Fact]
-        public void SaveInstance_5RepeatedItems_Count5()
+        public void Get_unknown_null()
         {
-            Producer identifier = new Producer();
-            KnowInstanceValue c1 = new KnowInstanceValue(GenerateID(), 1);
-            KnowInstanceValue c2 = new KnowInstanceValue(GenerateID(), 2);
-            KnowInstanceValue c3 = new KnowInstanceValue(GenerateID(), 3);
-            KnowInstanceValue c4 = new KnowInstanceValue(GenerateID(), 4);
-            KnowInstanceValue c5 = new KnowInstanceValue(GenerateID(), 5);
+            Producer prod = new Producer() { GenerateIdDelegate = GenerateId };
+            KnowInstanceValue c1 = new KnowInstanceValue(GenerateId(), 1);
+            KnowInstanceValue c2 = new KnowInstanceValue(GenerateId(), 2);
+            KnowInstanceValue c3 = new KnowInstanceValue(GenerateId(), 3);
+            KnowInstanceValue c4 = new KnowInstanceValue(GenerateId(), 4);
+            KnowInstanceValue c5 = new KnowInstanceValue(GenerateId(), 5);
+            KnowInstanceSymbol c6 = new KnowInstanceSymbol(GenerateId(), new List<KnowInstance> { c1, c2 });
+            prod.SaveInstance(c1);
+            prod.SaveInstance(c2);
+            prod.SaveInstance(c3);
+            prod.SaveInstance(c4);
+            prod.SaveInstance(c5);
+            prod.SaveInstance(c6);
 
-            identifier.SaveInstance(c1);
-            identifier.SaveInstance(c2);
-            identifier.SaveInstance(c3);
-            identifier.SaveInstance(c4);
-            identifier.SaveInstance(c5);
+            var result = prod.Get(c1, c3);
 
-            identifier.SaveInstance(c1);
-            identifier.SaveInstance(c2);
-            identifier.SaveInstance(c3);
-            identifier.SaveInstance(c4);
-            identifier.SaveInstance(c5);
-
-            Assert.Equal(5, identifier.KnowInstances.Count);
+            Assert.Equal(null, result);
         }
+        #endregion
 
-        [Fact]
-        public void SaveSequence_Pattern_Count9()
-        {
-            Producer identifier = new Producer();
-            KnowInstanceValue c1 = new KnowInstanceValue(GenerateID(), 1);
-            KnowInstanceValue c2 = new KnowInstanceValue(GenerateID(), 2);
-            KnowInstanceValue c3 = new KnowInstanceValue(GenerateID(), 3);
-            KnowInstanceValue c4 = new KnowInstanceValue(GenerateID(), 4);
-            KnowInstanceValue c5 = new KnowInstanceValue(GenerateID(), 5);
-            List<KnowInstance> inputStream = new List<KnowInstance> {
-                c1,
-                   c2,
-                      c3,
-                         c4,
-                            c5,
-                            c5,
-                            c5,
-                         c4,
-                      c3,
-                   c2,
-                c1,
-
-            };
-
-            foreach(KnowInstance ki in inputStream)
-                identifier.SaveSequence(ki);
-
-            Assert.Equal(9, identifier.KnowInstances.Count);
-
-        }
-
+        #region Learning
         [Fact]
         public void Learn_LinearRampPattern_Count15()
         {
-            Producer identifier = new Producer();
-            KnowInstanceValue c1 = new KnowInstanceValue(GenerateID(), 1);
-            KnowInstanceValue c2 = new KnowInstanceValue(GenerateID(), 2);
-            KnowInstanceValue c3 = new KnowInstanceValue(GenerateID(), 3);
-            KnowInstanceValue c4 = new KnowInstanceValue(GenerateID(), 4);
-            KnowInstanceValue c5 = new KnowInstanceValue(GenerateID(), 5);
+            Producer prod = new Producer();
+            KnowInstanceValue c1 = new KnowInstanceValue(GenerateId(), 1);
+            KnowInstanceValue c2 = new KnowInstanceValue(GenerateId(), 2);
+            KnowInstanceValue c3 = new KnowInstanceValue(GenerateId(), 3);
+            KnowInstanceValue c4 = new KnowInstanceValue(GenerateId(), 4);
+            KnowInstanceValue c5 = new KnowInstanceValue(GenerateId(), 5);
             List<KnowInstance> inputStream = new List<KnowInstance> {
                 c1,
                    c2,
@@ -128,21 +99,20 @@ namespace KnowledgeProduction.Tests
             };
 
             foreach (KnowInstance ki in inputStream)
-                identifier.Learn(ki);
+                prod.Learn(ki);
 
-            Assert.Equal(14, identifier.KnowInstances.Count);
+            Assert.Equal(14, prod.KnowInstances.Count);
             //5 values
             //4 sequences for ramp-up.
             //1 for holding
             //4 sequences for ramp-down.
         }
-
         [Fact]
         public void Learn_OnOffPattern_Count4()
         {
-            Producer identifier = new Producer();
-            KnowInstanceValue c1 = new KnowInstanceValue(GenerateID(), (0));
-            KnowInstanceValue c2 = new KnowInstanceValue(GenerateID(), (1));
+            Producer prod = new Producer();
+            KnowInstanceValue c1 = new KnowInstanceValue(GenerateId(), (0));
+            KnowInstanceValue c2 = new KnowInstanceValue(GenerateId(), (1));
             List<KnowInstance> inputData = new List<KnowInstance> {
                 c1,
                 c1,
@@ -162,9 +132,9 @@ namespace KnowledgeProduction.Tests
             };
 
             foreach (var k in inputData)
-                identifier.Learn(k);
+                prod.Learn(k);
 
-            Assert.Equal(6, identifier.KnowInstances.Count);
+            Assert.Equal(6, prod.KnowInstances.Count);
             //2 values
             //1 switch from off to on
             //1 switch to on to off
@@ -172,5 +142,116 @@ namespace KnowledgeProduction.Tests
             //1 holding off
 
         }
+
+        [Fact]
+        public void SaveInstance_5UniqueItems_Count5()
+        {
+            Producer prod = new Producer() { GenerateIdDelegate = GenerateId };
+            KnowInstanceValue c1 = new KnowInstanceValue(GenerateId(), 1);
+            KnowInstanceValue c2 = new KnowInstanceValue(GenerateId(), 2);
+            KnowInstanceValue c3 = new KnowInstanceValue(GenerateId(), 3);
+            KnowInstanceValue c4 = new KnowInstanceValue(GenerateId(), 4);
+            KnowInstanceValue c5 = new KnowInstanceValue(GenerateId(), 5);
+
+            prod.SaveInstance(c1);
+            prod.SaveInstance(c2);
+            prod.SaveInstance(c3);
+            prod.SaveInstance(c4);
+            prod.SaveInstance(c5);
+
+            Assert.Equal(5, prod.KnowInstances.Count);
+        }
+        [Fact]
+        public void SaveInstance_5RepeatedItems_Count5()
+        {
+            Producer prod = new Producer();
+            KnowInstanceValue c1 = new KnowInstanceValue(GenerateId(), 1);
+            KnowInstanceValue c2 = new KnowInstanceValue(GenerateId(), 2);
+            KnowInstanceValue c3 = new KnowInstanceValue(GenerateId(), 3);
+            KnowInstanceValue c4 = new KnowInstanceValue(GenerateId(), 4);
+            KnowInstanceValue c5 = new KnowInstanceValue(GenerateId(), 5);
+
+            prod.SaveInstance(c1);
+            prod.SaveInstance(c2);
+            prod.SaveInstance(c3);
+            prod.SaveInstance(c4);
+            prod.SaveInstance(c5);
+
+            prod.SaveInstance(c1);
+            prod.SaveInstance(c2);
+            prod.SaveInstance(c3);
+            prod.SaveInstance(c4);
+            prod.SaveInstance(c5);
+
+            Assert.Equal(5, prod.KnowInstances.Count);
+        }
+
+        [Fact]
+        public void SaveSequence_Pattern_Count9()
+        {
+            Producer prod = new Producer();
+            KnowInstanceValue c1 = new KnowInstanceValue(GenerateId(), 1);
+            KnowInstanceValue c2 = new KnowInstanceValue(GenerateId(), 2);
+            KnowInstanceValue c3 = new KnowInstanceValue(GenerateId(), 3);
+            KnowInstanceValue c4 = new KnowInstanceValue(GenerateId(), 4);
+            KnowInstanceValue c5 = new KnowInstanceValue(GenerateId(), 5);
+            List<KnowInstance> inputStream = new List<KnowInstance> {
+                c1,
+                   c2,
+                      c3,
+                         c4,
+                            c5,
+                            c5,
+                            c5,
+                         c4,
+                      c3,
+                   c2,
+                c1,
+
+            };
+
+            foreach (KnowInstance ki in inputStream)
+                prod.SaveSequence(ki);
+
+            Assert.Equal(9, prod.KnowInstances.Count);
+
+        }
+        #endregion
+
+        #region Updating
+        [Fact]
+        public void Add()
+        {
+            Producer prod = new Producer() { GenerateIdDelegate = GenerateId };
+            prod.Add(15, 5.0);
+
+            KnowInstance result = prod.Get(15);
+
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void Remove()
+        {
+            Producer prod = new Producer() { GenerateIdDelegate = GenerateId };
+            KnowInstanceValue c1 = new KnowInstanceValue(GenerateId(), 1);
+            KnowInstanceValue c2 = new KnowInstanceValue(GenerateId(), 2);
+            KnowInstanceValue c3 = new KnowInstanceValue(GenerateId(), 3);
+            KnowInstanceValue c4 = new KnowInstanceValue(GenerateId(), 4);
+            KnowInstanceValue c5 = new KnowInstanceValue(GenerateId(), 5);
+            KnowInstanceSymbol c6 = new KnowInstanceSymbol(GenerateId(), new List<KnowInstance> { c1, c2 });
+            prod.SaveInstance(c1);
+            prod.SaveInstance(c2);
+            prod.SaveInstance(c3);
+            prod.SaveInstance(c4);
+            prod.SaveInstance(c5);
+            prod.SaveInstance(c6);
+
+            prod.Remove(c1.ID);
+            KnowInstance result = prod.Get(c1.ID);
+
+            Assert.Null(result);
+        }
+        #endregion
     }
 }

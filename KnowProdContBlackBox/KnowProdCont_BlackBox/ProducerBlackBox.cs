@@ -18,6 +18,34 @@ namespace KnowProdContBlackBox
         private Thread samplingThread;
 
         //Properties
+        public int TimeCurrent_ms
+        {
+            get
+            {
+                return this.discBlackBox.TimeCurrent_ms;
+            }
+        }
+        public int TimeInterval_ms
+        {
+            get
+            {
+                return this.discBlackBox.TimeInterval_ms;
+            }
+        }
+        public Dictionary<string, KnowInstanceValue> Input
+        {
+            get
+            {
+                return ConvertToKI(this.discBlackBox.Input);
+            }
+        }
+        public Dictionary<string, KnowInstanceValue> Output
+        {
+            get
+            {
+                return ConvertToKI(this.discBlackBox.Output);
+            }
+        }
         public List<string> InputNames
         {
             get
@@ -31,6 +59,16 @@ namespace KnowProdContBlackBox
             {
                 return discBlackBox.Output.Keys.ToList();
             }
+        }
+        public event EventHandler OnStarting
+        {
+            add { this.discBlackBox.OnStarting += value; }
+            remove { this.discBlackBox.OnStarting -= value; }
+        }
+        public event EventHandler OnStarted
+        {
+            add { this.discBlackBox.OnStarted += value; }
+            remove { this.discBlackBox.OnStarted -= value; }
         }
 
         //Constructors
@@ -105,15 +143,15 @@ namespace KnowProdContBlackBox
         }
 
         //Methods - Sampling/Learning
-        private Dictionary<string, KnowInstance> ConvertToKI(Dictionary<string, Bin> inputState)
+        private Dictionary<string, KnowInstanceValue> ConvertToKI(Dictionary<string, Bin> inputState)
         {
-            var inputStateConverted = new Dictionary<string, KnowInstance>();
+            var inputStateConverted = new Dictionary<string, KnowInstanceValue>();
             foreach (var i in inputState)
             {
                 string key = i.Key;
                 Bin theBin = i.Value;
-                KnowInstance ki = this.Producers[key].Get(theBin.BinID);
-                inputStateConverted[key] = ki;
+                KnowInstanceValue kiv = (KnowInstanceValue) this.Producers[key].Get(theBin.BinID);
+                inputStateConverted[key] = kiv;
             }
 
             return inputStateConverted;

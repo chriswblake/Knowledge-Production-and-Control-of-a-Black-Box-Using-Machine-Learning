@@ -24,7 +24,7 @@ namespace KnowProdContBlackBox.Tests
         }
 
         [Theory]
-        [InlineData(1000)]
+        [InlineData(1500)]
         //[InlineData(5000)] //Not necessary to run so many
         public void LearningThread_sinFunction_SeeAssert(int iterations)
         {

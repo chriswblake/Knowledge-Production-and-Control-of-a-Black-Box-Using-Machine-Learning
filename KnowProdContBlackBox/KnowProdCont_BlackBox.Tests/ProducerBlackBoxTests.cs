@@ -27,8 +27,9 @@ namespace KnowProdContBlackBox.Tests
             Assert.Single(prodBlackBox.Producers["tan"].KnowInstances);
         }
 
-        [Fact]
-        public void Learning_sinFunction_LongTest_SeeAssert()
+        [Theory]
+        [InlineData(500)]
+        public void Learning_sinFunction_SeeAssert(int iterations)
         {
             List<double> x_values = new List<double> {
                 Math.PI * 0.1,
@@ -49,7 +50,7 @@ namespace KnowProdContBlackBox.Tests
             Random rand = new Random();
             trigBlackBox.Start();
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < iterations; i++)
             {
                 //Change input
                 double x_crisp = x_values[rand.Next(0, 10)];
@@ -71,8 +72,9 @@ namespace KnowProdContBlackBox.Tests
             Assert.Equal(discBlackBox.Discretizers["tan"].Bins.Count, resultTan);
         }
 
-        [Fact]
-        public void Learn_OnOffPattern_Count8()
+        [Theory]
+        [InlineData(200)]
+        public void Learn_OnOffPattern_Count8(int iterations)
         {
             List<double> bool1 = new List<double> {
                 0.0,
@@ -102,7 +104,7 @@ namespace KnowProdContBlackBox.Tests
             Random rand = new Random();
             logicBlackBox.Start();
 
-            for (int i = 0; i < 200; i++)
+            for (int i = 0; i < iterations; i++)
             {
                 //Change input
                 double bool1_crisp = bool1[i % bool1.Count];
