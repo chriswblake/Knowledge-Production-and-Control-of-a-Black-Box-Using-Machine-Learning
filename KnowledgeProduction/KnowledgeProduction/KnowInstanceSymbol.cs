@@ -7,7 +7,7 @@ using System.Linq;
 namespace KnowledgeProduction
 {
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    public class KnowInstanceSymbol : KnowInstance
+    public partial class KnowInstanceSymbol : KnowInstance
     {
         //Properties
         private List<KnowInstance> _content = new List<KnowInstance>();
@@ -15,6 +15,11 @@ namespace KnowledgeProduction
             {
                 return _content;
             } }
+        public List<KnowInstance> KnowInstances { get
+            {
+                return _content.ToList();
+            }
+        }
         public bool Contains(KnowInstance ki)
         {
             return _content.Contains(ki);
@@ -69,5 +74,14 @@ namespace KnowledgeProduction
             return string.Format("{0}:({1})", base.ToString(), GetIDs(_content));
         }
 
+    }
+
+    public partial class KnowInstanceSymbol
+    {
+        public override string ContentToString()
+        {
+            var ids = this.KnowInstances.Select(p => p.ID).ToList();
+            return "(" + string.Join(",", ids) + ")";
+        }
     }
 }
