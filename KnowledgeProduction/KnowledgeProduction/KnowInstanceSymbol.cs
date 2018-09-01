@@ -81,7 +81,7 @@ namespace KnowledgeProduction
         public override string ContentToString()
         {
             var ids = this.KnowInstances.Select(p => p.ID).ToList();
-            return "(" + string.Join(",", ids) + ")";
+            return "(" + string.Join("; ", ids) + ")";
         }
     }
 }
