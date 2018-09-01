@@ -6,7 +6,6 @@ using KnowProdContBlackBox;
 using Discretization;
 using BlackBoxModeling;
 using KnowledgeProduction;
-using BlackBoxModeling;
 using IdManagement;
 using static Discretization.DataGeneration;
 using System.Threading;
