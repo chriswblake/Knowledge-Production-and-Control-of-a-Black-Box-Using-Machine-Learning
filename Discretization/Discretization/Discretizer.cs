@@ -68,7 +68,7 @@ namespace Discretization
         //Methods - Operation
         public Bin GetBin(double value)
         {
-            Bin theBin = Bins.Find(p => value >= p.Low && value < p.High); //inclusive low. exclusive high
+            Bin theBin = Bins.ToList().Find(p => value >= p.Low && value < p.High); //inclusive low. exclusive high
             return theBin;
         }
 
