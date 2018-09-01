@@ -112,10 +112,14 @@ namespace KnowProdContBlackBox
             Discretizer disc = (Discretizer)sender;
 
             //Find key
-            string key = discBlackBox.Discretizers.Where(p => p.Value == disc).First().Key; //This is not a fast method and should be replaced someday.
+            string prodName = discBlackBox.Discretizers.Where(p => p.Value == disc).First().Key; //This is not a fast method and should be replaced someday.
 
             //Find producer
-            Producer prod = Producers[key];
+            Producer prod = Producers[prodName];
+
+            //Trigger events
+            OnKnowInstanceRemoving?.Invoke(this, new KnowInstanceRemovingEventArgs(prodName, prod.Get(e.OrigBinLow.BinID)));
+            OnKnowInstanceRemoving?.Invoke(this, new KnowInstanceRemovingEventArgs(prodName, prod.Get(e.OrigBinHigh.BinID)));
 
             //Remove old items
             prod.Remove(e.OrigBinLow.BinID);
@@ -142,11 +146,25 @@ namespace KnowProdContBlackBox
             prod.Add(e.NewBinHigh.BinID, e.NewBinHigh);
         }
 
-        //Methods - Sampling/Learning
-        private Dictionary<string, KnowInstanceValue> ConvertToKI(Dictionary<string, Bin> inputState)
+        //Methods - Events
+        public event EventHandler<KnowInstanceRemovingEventArgs> OnKnowInstanceRemoving;
+        public class KnowInstanceRemovingEventArgs :EventArgs
         {
+            public string ProducerName { get; private set; }
+            public KnowInstance RemovedKnowInstance { get; private set; }
+            public KnowInstanceRemovingEventArgs(string producerName, KnowInstance ki)
+            {
+                this.ProducerName = producerName;
+                this.RemovedKnowInstance = ki;
+            }
+        }
+
+        //Methods - Sampling/Learning
+        private Dictionary<string, KnowInstanceValue> ConvertToKI(Dictionary<string, Bin> ioStateOrig)
+        {
+            var ioState = new Dictionary<string, Bin>(ioStateOrig);
             var inputStateConverted = new Dictionary<string, KnowInstanceValue>();
-            foreach (var i in inputState)
+            foreach (var i in ioState)
             {
                 string key = i.Key;
                 Bin theBin = i.Value;

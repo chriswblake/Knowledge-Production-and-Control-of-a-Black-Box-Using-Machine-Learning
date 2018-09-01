@@ -5,10 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ReinforcementLearningBasedDecisionTree" Version="1.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\..\Reinforcement-Learning-Based-Decision-Tree\RLDT\RLDT.csproj" />
     <ProjectReference Include="..\..\BlackBox\BlackBox\BlackBox.csproj" />
     <ProjectReference Include="..\..\Discretization\Discretization\Discretization.csproj" />
     <ProjectReference Include="..\..\IdManagement\IdManager\IdManagement.csproj" />
