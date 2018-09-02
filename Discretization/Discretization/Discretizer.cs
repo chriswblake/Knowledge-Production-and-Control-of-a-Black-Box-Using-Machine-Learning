@@ -41,6 +41,14 @@ namespace Discretization
             //Start with initial bin, which should have limits of +- infinity.
             this.Bins = new List<Bin>() { new Bin(GenerateId()) };
         }
+        public Discretizer(Func<int> generateIdDelegate)
+        {
+            //Default ID generator.
+            this.GenerateIdDelegate = generateIdDelegate;
+
+            //Start with initial bin, which should have limits of +- infinity.
+            this.Bins = new List<Bin>() { new Bin(GenerateId()) };
+        }
         [JsonConstructor]
         private Discretizer(string notUsed)
         {
