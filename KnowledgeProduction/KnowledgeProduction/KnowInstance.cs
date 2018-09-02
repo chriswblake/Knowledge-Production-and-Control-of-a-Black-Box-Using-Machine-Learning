@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace KnowledgeProduction
 {
-    public abstract partial class KnowInstance : IComparable
+    public abstract partial class KnowInstance : IComparable, IRemoveSelf
     {
         //Properties
         public int ID { get; private set; }
@@ -36,6 +36,13 @@ namespace KnowledgeProduction
             else
                 return 0;
         }
+
+        //Event
+        public void RemoveSelf()
+        {
+            OnRemoveSelf?.Invoke(this, new EventArgs());
+        }
+        public event EventHandler OnRemoveSelf;
     }
 
     public abstract partial class KnowInstance
@@ -44,34 +51,6 @@ namespace KnowledgeProduction
         public virtual string ContentToString()
         {
             return this.Content.ToString();
-        }
-        static public string ToHtmlTable(List<KnowInstance> knowInstances)
-        {
-            string s = "";
-            s += "<table border='1'>\n";
-
-            //Header row
-            s += "<tr>";
-            s += "<th>ID</th>";
-            s += "<th>Content</th>";
-            s += "</tr>\n";
-
-            //Sort knowInstances by ID
-            knowInstances = knowInstances.OrderBy(p => p.ID).ToList();
-
-            //Content rows
-            foreach (KnowInstance k in knowInstances)
-            {
-                s += "<tr>\n";
-                //Show ID
-                s += "<td>" + k.ID.ToString() + "</td>\n";
-                s += "<td>" + k.ContentToString() + "</td>\n";
-                s += "</tr>\n";
-            }
-
-            s += "</table>\n";
-
-            return s;
         }
     }
 }
