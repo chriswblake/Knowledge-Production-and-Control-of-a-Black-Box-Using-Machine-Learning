@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using RLDT;
 using KnowledgeProduction;
+using IdManagement;
 using System.Threading;
 
 namespace KnowProdContBlackBox
@@ -11,16 +12,18 @@ namespace KnowProdContBlackBox
     {
         //Fields
         private Interpreter interpreter;
+        private IdManager idManager;
 
         //Properties
         public Dictionary<string, Policy> Policies = new Dictionary<string, Policy>();
         //private Thread samplingThread;
 
         //Constructor
-        public PolicyLearner(Interpreter interpreter)
+        public PolicyLearner(Interpreter interpreter, IdManager idManager)
         {
             //Save blackbox
             this.interpreter = interpreter;
+            this.idManager = idManager;
 
             //Create a policy for each output
             foreach(var outputName in this.interpreter.OutputNames)
@@ -52,12 +55,14 @@ namespace KnowProdContBlackBox
             foreach(var i in input)
             {
                 string inputName = i.Key;
-                KnowInstance ki = i.Value;
+                //KnowInstance ki = i.Value;
+                KnowInstanceWithMetaData ki = new KnowInstanceWithMetaData(i.Value, idManager);
                 dvt.Features.Add(new FeatureValuePairWithImportance(inputName, ki, 0));
             }
 
             //Label data
-            dvt.Label = new FeatureValuePair(outputName, output);
+            //dvt.Label = new FeatureValuePair(outputName, output);
+            dvt.Label = new FeatureValuePair(outputName, new KnowInstanceWithMetaData(output, idManager));
 
             return dvt;
         }

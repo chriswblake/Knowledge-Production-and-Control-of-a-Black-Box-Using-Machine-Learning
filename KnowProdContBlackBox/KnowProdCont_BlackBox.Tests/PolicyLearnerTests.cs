@@ -24,13 +24,13 @@ namespace KnowProdContBlackBox.Tests
             DiscreteBlackBox discBlackBox = new DiscreteBlackBox(logicBlackBox, idManager);
             ProducerBlackBox prodBlackBox = new ProducerBlackBox(discBlackBox, idManager);
             Interpreter interpreter = new Interpreter(prodBlackBox);
-            PolicyLearner policyLearner = new PolicyLearner(interpreter);
+            PolicyLearner policyLearner = new PolicyLearner(interpreter, idManager);
 
             Assert.Equal(3, policyLearner.Policies.Count);
         }
 
         [Theory]
-        [InlineData(1000)]
+        [InlineData(500)]
         public void Learn_LogicOperators(int iterations)
         {
             List<double> bool1 = new List<double> {
@@ -80,7 +80,7 @@ namespace KnowProdContBlackBox.Tests
             DiscreteBlackBox discBlackBox = new DiscreteBlackBox(logicBlackBox, idManager);
             ProducerBlackBox prodBlackBox = new ProducerBlackBox(discBlackBox, idManager);
             Interpreter interpreter = new Interpreter(prodBlackBox) { MemorySize = iterations * 2 };
-            PolicyLearner policyLearner = new PolicyLearner(interpreter);
+            PolicyLearner policyLearner = new PolicyLearner(interpreter, idManager);
             Random rand = new Random();
             logicBlackBox.Start();
 
@@ -100,13 +100,17 @@ namespace KnowProdContBlackBox.Tests
 
             //Get Discretizers and Producers
             var disc1 = discBlackBox.Discretizers["bool1"];
-            var disc2 = discBlackBox.Discretizers["bool1"];
+            var disc2 = discBlackBox.Discretizers["bool2"];
             var discxor = discBlackBox.Discretizers["xor"];
             var prod1 = prodBlackBox.Producers["bool1"];
             var prod2 = prodBlackBox.Producers["bool2"];
             var prodxor = prodBlackBox.Producers["xor"];
+            Policy policyxor = policyLearner.Policies["xor"];
 
             //Check if training was sucessfull
+            Assert.Equal(4, disc1.Bins.Count);
+            Assert.Equal(4, disc2.Bins.Count);
+            Assert.Equal(4, discxor.Bins.Count);
             Assert.InRange(prod1.KnowInstances.Count, 8, 10);
             Assert.InRange(prod2.KnowInstances.Count, 8, 10);
             Assert.InRange(prodxor.KnowInstances.Count, 8, 10);
@@ -155,22 +159,20 @@ namespace KnowProdContBlackBox.Tests
             idManager.SetName(xor_SwitchedOn.ID, "Switched On");
             #endregion
 
-            return;
-
             //Decision Trees (detailed and simple)
             var treeSettingsBlanksSubScores = new RLDT.DecisionTree.TreeSettings() { ShowBlanks = true, ShowSubScores = true };
             var treeSettingsBlanks = new RLDT.DecisionTree.TreeSettings() { ShowBlanks = true, ShowSubScores = false };
             var treeSettingsSimple = new RLDT.DecisionTree.TreeSettings() { ShowBlanks = false, ShowSubScores = false };
-            var treeDisplaySettings = new RLDT.DecisionTree.TreeNode.TreeDisplaySettings() { ValueDisplayProperty="ID", LabelDisplayProperty="ID" };
-            string htmlTree_BlanksSubScores = policyLearner.Policies["xor"].ToDecisionTree(treeSettingsBlanksSubScores).ToHtmlTree(treeDisplaySettings);
-            string htmlTree_Blanks = policyLearner.Policies["xor"].ToDecisionTree(treeSettingsBlanks).ToHtmlTree(treeDisplaySettings);
-            string htmlTree_Simple = policyLearner.Policies["xor"].ToDecisionTree(treeSettingsSimple).ToHtmlTree();// treeDisplaySettings);
+            var treeDisplaySettings = new RLDT.DecisionTree.TreeNode.TreeDisplaySettings() { ValueDisplayProperty="IdAndName", LabelDisplayProperty="IdAndName" };
+            string htmlTree_BlanksSubScores = policyxor.ToDecisionTree(treeSettingsBlanksSubScores).ToHtmlTree(treeDisplaySettings);
+            string htmlTree_Blanks = policyxor.ToDecisionTree(treeSettingsBlanks).ToHtmlTree(treeDisplaySettings);
+            string htmlTree_Simple = policyxor.ToDecisionTree(treeSettingsSimple).ToHtmlTree(treeDisplaySettings);
             string htmlTreeStyle = RLDT.DecisionTree.TreeNode.DefaultStyling;
 
             //Tables of vocabulary
-            string htmlBool1 = "bool1 Vocabulary" + HtmlTools.ToHtmlTable(prodBlackBox.Producers["bool1"].KnowInstances.Values.ToList());
-            string htmlBool2 = "bool2 Vocabulary" + HtmlTools.ToHtmlTable(prodBlackBox.Producers["bool2"].KnowInstances.Values.ToList());
-            string htmlXor = "xor Vocabulary" + HtmlTools.ToHtmlTable(prodBlackBox.Producers["xor"].KnowInstances.Values.ToList());
+            string htmlBool1 = "bool1 Vocabulary" + HtmlTools.ToHtmlTable(prod1.KnowInstances.Values.ToList(), idManager);
+            string htmlBool2 = "bool2 Vocabulary" + HtmlTools.ToHtmlTable(prod2.KnowInstances.Values.ToList(), idManager);
+            string htmlXor = "xor Vocabulary" + HtmlTools.ToHtmlTable(prodxor.KnowInstances.Values.ToList(), idManager);
             string htmlVocab = string.Format(@"
             <table>
             <tr>
@@ -189,22 +191,12 @@ namespace KnowProdContBlackBox.Tests
             return;
 
             #region Assert
-            //Find equivalent zero and five for both inputs
-            var binBool1_0 = discBlackBox.Discretizers["bool1"].GetBin(0.0);
-            var binBool1_5 = discBlackBox.Discretizers["bool1"].GetBin(5.0);
-            var bool1_0 = prodBlackBox.Producers["bool1"].Get(binBool1_0.BinID);
-            var bool1_5 = prodBlackBox.Producers["bool1"].Get(binBool1_5.BinID);
 
-            var binBool2_0 = discBlackBox.Discretizers["bool2"].GetBin(0.0);
-            var binBool2_5 = discBlackBox.Discretizers["bool2"].GetBin(5.0);
-            var bool2_0 = prodBlackBox.Producers["bool2"].Get(binBool2_0.BinID);
-            var bool2_5 = prodBlackBox.Producers["bool2"].Get(binBool2_5.BinID);
+            //DataVector dataVectorOff = new DataVector(new string[] {"bool1", "bool2" }, new object[] {bool1_On, bool2_On });
+            //DataVector dataVectorOn = new DataVector(new string[] {"bool1", "bool2" }, new object[] {bool1_Off, bool2_On });
 
-            DataVector dataVectorTrue = new DataVector(new string[] {"bool1", "bool2" }, new object[] {bool1_5, bool2_5 });
-            DataVector dataVectorFalse = new DataVector(new string[] {"bool1", "bool2" }, new object[] {bool1_0, bool2_5 });
-
-            var result1 = policyLearner.Policies["and"].Classify_ByPolicy(dataVectorTrue);
-            var result2 = policyLearner.Policies["and"].Classify_ByPolicy(dataVectorFalse);
+            //var result1 = policyxor.Classify_ByPolicy(dataVectorOn);
+            //var result2 = policyxor.Classify_ByPolicy(dataVectorOff);
 
             #endregion
 
