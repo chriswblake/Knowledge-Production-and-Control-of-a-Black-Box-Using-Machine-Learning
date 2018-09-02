@@ -16,7 +16,6 @@ namespace KnowProdContBlackBox
 
         //Properties
         public Dictionary<string, Policy> Policies = new Dictionary<string, Policy>();
-        //private Thread samplingThread;
 
         //Constructor
         public PolicyLearner(Interpreter interpreter, IdManager idManager)
@@ -30,10 +29,6 @@ namespace KnowProdContBlackBox
             {
                 Policies.Add(outputName, new Policy());
             }
-
-            //Create sampling thread
-            //samplingThread = CreateSamplingThread();
-            //this.interpreter.OnStarting += Interpreter_OnStarting; //Start sampling thread when black box starts
 
             //As items are placed in memory send them to the learner.
             this.interpreter.OnAddedToMemory += Interpreter_OnAddedToMemory;
@@ -94,30 +89,5 @@ namespace KnowProdContBlackBox
             foreach (Policy thePolicy in this.Policies.Values)
                 thePolicy.RemoveFeatureValuePair(fvp);
         }
-        //private void Interpreter_OnStarting(object sender, EventArgs e)
-        //{
-        //    this.samplingThread.Start();
-        //}
-        //private Thread CreateSamplingThread()
-        //{
-        //    Create the background sampling thread
-        //    Thread samplingThread = new Thread
-        //    (delegate ()
-        //    {
-        //        while (Thread.CurrentThread.IsAlive)
-        //        {
-        //            Interpret inputs and outputs
-
-
-        //            Submit to RLDT policy
-
-        //            Wait until next sample time
-        //            Thread.Sleep(this.interpreter.TimeInterval_ms);
-        //        }
-        //    });
-        //    samplingThread.IsBackground = true;
-
-        //    return samplingThread;
-        //}
     }
 }
