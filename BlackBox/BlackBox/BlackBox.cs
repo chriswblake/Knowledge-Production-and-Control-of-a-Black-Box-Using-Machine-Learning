@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Linq;
 
 namespace BlackBoxModeling
 {
@@ -18,6 +19,20 @@ namespace BlackBoxModeling
         public Thread RunThread { get; set; }
         public Dictionary<string, object> Input { get { return input; } }
         public Dictionary<string, object> Output { get { return output; } }
+        public Dictionary<string, object> InputAndOuput
+        {
+            get
+            {
+                lock(processingLock )
+                {
+                    var i = new Dictionary<string, object>(input);
+                    var o = new Dictionary<string, object>(output);
+                    return i.Concat(o).ToDictionary(p => p.Key, p => p.Value);
+                }
+                    
+            }
+        }
+        private static Object processingLock = new object();
 
         //Constructors
         public BlackBox() : this("Undefined")
@@ -39,12 +54,14 @@ namespace BlackBoxModeling
                 {
                     while (RunThread.IsAlive)
                     {
-                        Run();
+                        lock(processingLock)
+                            Run();
                         Thread.Sleep(TimeInterval_ms);
                         timeCurrent_ms += TimeInterval_ms;
                     }
                 });
-            RunThread.IsBackground = true;
+            RunThread.Name = "BlackBoxRun";
+            //RunThread.IsBackground = true;
 
             //Start black box
             OnStarting?.Invoke(this, new EventArgs()); //trigger pre-start event

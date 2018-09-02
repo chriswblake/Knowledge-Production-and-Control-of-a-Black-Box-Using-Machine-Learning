@@ -123,12 +123,12 @@ namespace KnowProdContBlackBox.Tests
             KnowInstance bool1_StayOn = prod1.Get(bool1_On, bool1_On);
             KnowInstance bool1_SwitchOff = prod1.Get(bool1_On, bool1_Off);
             KnowInstance bool1_SwitchOn = prod1.Get(bool1_Off, bool1_On);
-            idManager.SetName(bool1_On.ID, "On");
-            idManager.SetName(bool1_Off.ID, "Off");
-            idManager.SetName(bool1_StayOff.ID, "Stay Off");
-            idManager.SetName(bool1_StayOn.ID, "Stay On");
-            idManager.SetName(bool1_SwitchOff.ID, "Switch Off");
-            idManager.SetName(bool1_SwitchOn.ID, "Switch On");
+            idManager.SetName(bool1_On.ID, "True");
+            idManager.SetName(bool1_Off.ID, "False");
+            idManager.SetName(bool1_StayOff.ID, "Stay False");
+            idManager.SetName(bool1_StayOn.ID, "Stay True");
+            idManager.SetName(bool1_SwitchOff.ID, "True to False");
+            idManager.SetName(bool1_SwitchOn.ID, "False to True");
             #endregion
             #region bool2
             KnowInstance bool2_On = prod2.Get(disc2.GetBin(5.0).BinID);
@@ -137,26 +137,26 @@ namespace KnowProdContBlackBox.Tests
             KnowInstance bool2_StayOn = prod2.Get(bool2_On, bool2_On);
             KnowInstance bool2_SwitchOff = prod2.Get(bool2_On, bool2_Off);
             KnowInstance bool2_SwitchOn = prod2.Get(bool2_Off, bool2_On);
-            idManager.SetName(bool2_On.ID, "On");
-            idManager.SetName(bool2_Off.ID, "Off");
-            idManager.SetName(bool2_StayOff.ID, "Stay Off");
-            idManager.SetName(bool2_StayOn.ID, "Stay On");
-            idManager.SetName(bool2_SwitchOff.ID, "Switch Off");
-            idManager.SetName(bool2_SwitchOn.ID, "Switch On");
+            idManager.SetName(bool2_On.ID, "True");
+            idManager.SetName(bool2_Off.ID, "False");
+            idManager.SetName(bool2_StayOff.ID, "Stay False");
+            idManager.SetName(bool2_StayOn.ID, "Stay True");
+            idManager.SetName(bool2_SwitchOff.ID, "True to False");
+            idManager.SetName(bool2_SwitchOn.ID, "False to True");
             #endregion
             #region boolxor
             KnowInstance xor_On = prodxor.Get(discxor.GetBin(5.0).BinID);
             KnowInstance xor_Off = prodxor.Get(discxor.GetBin(0.0).BinID);
-            KnowInstance xor_StayedOff = prodxor.Get(xor_Off, xor_Off);
-            KnowInstance xor_StayedOn = prodxor.Get(xor_On, xor_On);
+            KnowInstance xor_StayOff = prodxor.Get(xor_Off, xor_Off);
+            KnowInstance xor_StayOn = prodxor.Get(xor_On, xor_On);
             KnowInstance xor_SwitchedOff = prodxor.Get(xor_On, xor_Off);
             KnowInstance xor_SwitchedOn = prodxor.Get(xor_Off, xor_On);
-            idManager.SetName(xor_On.ID, "On");
-            idManager.SetName(xor_Off.ID, "Off");
-            idManager.SetName(xor_StayedOff.ID, "Stayed Off");
-            idManager.SetName(xor_StayedOn.ID, "Stayed On");
-            idManager.SetName(xor_SwitchedOff.ID, "Switched Off");
-            idManager.SetName(xor_SwitchedOn.ID, "Switched On");
+            idManager.SetName(xor_On.ID, "True");
+            idManager.SetName(xor_Off.ID, "False");
+            idManager.SetName(xor_StayOff.ID, "Stay False");
+            idManager.SetName(xor_StayOn.ID, "Stay True");
+            idManager.SetName(xor_SwitchedOff.ID, "True to False");
+            idManager.SetName(xor_SwitchedOn.ID, "False to True");
             #endregion
 
             //Decision Trees (detailed and simple)

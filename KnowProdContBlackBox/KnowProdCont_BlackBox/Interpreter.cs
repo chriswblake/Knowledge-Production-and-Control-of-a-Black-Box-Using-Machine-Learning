@@ -19,6 +19,7 @@ namespace KnowProdContBlackBox
         //Properties
         public Queue<Dictionary<string, KnowInstance>> MemoryInput { get; set; } = new Queue<Dictionary<string, KnowInstance>>();
         public Queue<Dictionary<string, KnowInstance>> MemoryOutput { get; set; } = new Queue<Dictionary<string, KnowInstance>>();
+        public Queue<Dictionary<string, KnowInstance>> MemoryIOState { get; set; } = new Queue<Dictionary<string, KnowInstance>>();
         public int MemorySize { get; set; } = 20;
 
         //Properties - Inner black box
@@ -40,14 +41,14 @@ namespace KnowProdContBlackBox
         {
             get
             {
-                return prodBlackBox.Input.Keys.ToList();
+                return prodBlackBox.InputNames; ;
             }
         }
         public List<string> OutputNames
         {
             get
             {
-                return prodBlackBox.Output.Keys.ToList();
+                return prodBlackBox.OutputNames;
             }
         }
         public event EventHandler OnStarting
@@ -89,64 +90,55 @@ namespace KnowProdContBlackBox
             {
                 while (Thread.CurrentThread.IsAlive)
                 {
-                    //Sample values of inputs and outputs
-                    var inputState = prodBlackBox.Input.ToDictionary(d => d.Key, d => (KnowInstance)d.Value);
-                    var outputState = prodBlackBox.Output.ToDictionary(d => d.Key, d => (KnowInstance)d.Value);
+                    //Get state of inputs and outputs
+                    var ioState = prodBlackBox.InputAndOutput;
 
-                    //Check for nulls (not identified) //Note: this should never happen but it does, so there is a bug somewhere.
-                    bool validStates = true;
-                    if (inputState.Select(p => p.Value).Contains(null))
-                        validStates = false;
-                    if (outputState.Select(p => p.Value).Contains(null))
-                        validStates = false;
-
-                    //Add to memory
-                    if (validStates)
-                        AddToMemory(inputState, outputState);
+                    //Save to memory
+                    AddToMemory(ioState);
 
                     //Send through interpreter
-                    var inputStateInter = Interpret(_prevInputState, inputState);
-                    var outputStateInter = Interpret(_prevOutputState, outputState);
-
-                    //Check for nulls (not identified) //Note: this should never happen but it does, so there is a bug somewhere.
-                    validStates = true;
-                    if (inputStateInter.Select(p => p.Value).Contains(null))
-                        validStates = false;
-                    if (outputStateInter.Select(p => p.Value).Contains(null))
-                        validStates = false;
-
-                    //Add to memory
-                    if (validStates)
-                        AddToMemory(inputStateInter, outputStateInter);
-
-
+                    var ioStateInter = Interpret(_prevIOState, ioState);
 
                     //Update prev state
-                    _prevInputState = inputState;
-                    _prevOutputState = outputState;
+                    _prevIOState = ioState;
 
                     //Wait until next sample time
                     Thread.Sleep(prodBlackBox.TimeInterval_ms);
                 }
             });
-            samplingThread.IsBackground = true;
+            samplingThread.Name = "InterpreterSampling";
+            //samplingThread.IsBackground = true;
 
             return samplingThread;
         }
-        private void AddToMemory(Dictionary<string, KnowInstance> inputState, Dictionary<string, KnowInstance> outputState)
+        //private void AddToMemory(Dictionary<string, KnowInstance> inputState, Dictionary<string, KnowInstance> outputState)
+        //{
+        //    //Check memory length
+        //    if (MemoryInput.Count == MemorySize)
+        //    {
+        //        MemoryInput.Dequeue();
+        //        MemoryOutput.Dequeue();
+        //    }
+
+        //    //Add the new item
+        //    MemoryInput.Enqueue(inputState);
+        //    MemoryOutput.Enqueue(outputState);
+
+        //    //Trigger event
+        //    OnAddedToMemory?.Invoke(this, new AddedToMemoryEventArgs(inputState, outputState));
+        //}
+        private void AddToMemory(Dictionary<string, KnowInstance> ioState)
         {
             //Check memory length
-            if (MemoryInput.Count == MemorySize)
-            {
-                MemoryInput.Dequeue();
-                MemoryOutput.Dequeue();
-            }
+            if (MemoryIOState.Count == MemorySize)
+                MemoryIOState.Dequeue();
 
             //Add the new item
-            MemoryInput.Enqueue(inputState);
-            MemoryOutput.Enqueue(outputState);
+            MemoryIOState.Enqueue(ioState);
 
             //Trigger event
+            var inputState = ioState.Where(p => InputNames.Contains(p.Key)).ToDictionary(p => p.Key, p => p.Value);
+            var outputState = ioState.Where(p => OutputNames.Contains(p.Key)).ToDictionary(p => p.Key, p => p.Value);
             OnAddedToMemory?.Invoke(this, new AddedToMemoryEventArgs(inputState, outputState));
         }
         private Dictionary<string, KnowInstance> Interpret(Dictionary<string, KnowInstance> state1, Dictionary<string, KnowInstance> state2)
@@ -173,7 +165,7 @@ namespace KnowProdContBlackBox
 
             return ioInterpretation;
         }
-        
+
         //Events
         public event EventHandler<AddedToMemoryEventArgs> OnAddedToMemory;
         public class AddedToMemoryEventArgs : EventArgs
@@ -193,5 +185,6 @@ namespace KnowProdContBlackBox
         //Methods - cache
         private Dictionary<string, KnowInstance> _prevInputState = null;
         private Dictionary<string, KnowInstance> _prevOutputState = null;
+        private Dictionary<string, KnowInstance> _prevIOState = null;
     }
 }

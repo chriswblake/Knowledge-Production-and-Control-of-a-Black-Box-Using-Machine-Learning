@@ -32,32 +32,25 @@ namespace KnowProdContBlackBox
                 return this.discBlackBox.TimeInterval_ms;
             }
         }
-        public Dictionary<string, KnowInstanceValue> Input
+        public Dictionary<string, KnowInstance> InputAndOutput
         {
             get
             {
-                return ConvertToKI(this.discBlackBox.Input);
-            }
-        }
-        public Dictionary<string, KnowInstanceValue> Output
-        {
-            get
-            {
-                return ConvertToKI(this.discBlackBox.Output);
+                return ConvertToKI(this.discBlackBox.InputAndOutput);
             }
         }
         public List<string> InputNames
         {
             get
             {
-                return discBlackBox.Input.Keys.ToList();
+                return discBlackBox.InputNames;;
             }
         }
         public List<string> OutputNames
         {
             get
             {
-                return discBlackBox.Output.Keys.ToList();
+                return discBlackBox.OutputNames;
             }
         }
         public event EventHandler OnStarting
@@ -72,27 +65,21 @@ namespace KnowProdContBlackBox
         }
 
         //Constructors
-        public ProducerBlackBox(DiscreteBlackBox blackBox, IdManager idManager)
+        public ProducerBlackBox(DiscreteBlackBox discBlackBox, IdManager idManager)
         {
-            this.discBlackBox = blackBox;
+            this.discBlackBox = discBlackBox;
             this.idManager = idManager;
-
+        
             //Create a producer for each input and output. Subscribe to changes in the discretizer
-            foreach (var inputName in blackBox.Input.Keys)
+            foreach (var ioName in discBlackBox.InputAndOutput.Keys)
             {
-                Producers.Add(inputName, new Producer() { GenerateIdDelegate = idManager.GenerateId });
-                blackBox.Discretizers[inputName].OnMergeBins += Discretizer_OnMergeBins;
-                blackBox.Discretizers[inputName].OnSplitBin += Discretizer_OnSplitBin;
-            }
-            foreach (var outputName in blackBox.Output.Keys)
-            {
-                Producers.Add(outputName, new Producer() { GenerateIdDelegate = idManager.GenerateId });
-                blackBox.Discretizers[outputName].OnMergeBins += Discretizer_OnMergeBins;
-                blackBox.Discretizers[outputName].OnSplitBin += Discretizer_OnSplitBin;
+                Producers.Add(ioName, new Producer() { GenerateIdDelegate = idManager.GenerateId });
+                discBlackBox.Discretizers[ioName].OnMergeBins += Discretizer_OnMergeBins;
+                discBlackBox.Discretizers[ioName].OnSplitBin += Discretizer_OnSplitBin;
             }
 
             //Create knowledge instances for existing bins
-            foreach(var d in discBlackBox.Discretizers)
+            foreach (var d in this.discBlackBox.Discretizers)
             {
                 string key = d.Key;
                 Discretizer disc = d.Value;
@@ -103,7 +90,7 @@ namespace KnowProdContBlackBox
 
             //Create thread for sampling inputs and outputs
             this.samplingThread = CreateSamplingThread();
-            discBlackBox.OnStarting += DiscBlackBox_OnStarting; //Start when black box starts
+            this.discBlackBox.OnStarting += DiscBlackBox_OnStarting; //Start when black box starts
         }
 
         //Methods - Sync with discretizers
@@ -160,18 +147,22 @@ namespace KnowProdContBlackBox
         }
 
         //Methods - Sampling/Learning
-        private Dictionary<string, KnowInstanceValue> ConvertToKI(Dictionary<string, Bin> ioStateOrig)
+        private Dictionary<string, KnowInstance> ConvertToKI(Dictionary<string, Bin> ioState)
         {
-            var ioState = new Dictionary<string, Bin>(ioStateOrig);
-            var inputStateConverted = new Dictionary<string, KnowInstanceValue>();
-            foreach (var i in ioState)
+            var inputStateConverted = new Dictionary<string, KnowInstance>();
+            foreach (var io in ioState)
             {
-                string key = i.Key;
-                Bin theBin = i.Value;
-                KnowInstanceValue kiv = (KnowInstanceValue) this.Producers[key].Get(theBin.BinID);
-                inputStateConverted[key] = kiv;
+                string ioName = io.Key;
+                if (io.Value != null)
+                {
+                    Bin theBin = io.Value;
+                    KnowInstanceValue kiv = (KnowInstanceValue)this.Producers[ioName].Get(theBin.BinID);
+                    inputStateConverted[ioName] = kiv;
+                }
+                else
+                    inputStateConverted[ioName] = null;
+                
             }
-
             return inputStateConverted;
         }
         private void DiscBlackBox_OnStarting(object sender, EventArgs e)
@@ -186,23 +177,16 @@ namespace KnowProdContBlackBox
             {
                 while (Thread.CurrentThread.IsAlive)
                 {
-                    //Sample values of inputs and outputs
-                    var inputState = ConvertToKI(discBlackBox.Input);
-                    var outputState = ConvertToKI(discBlackBox.Output);
+                    //Get state of black box
+                    var ioStateBins = discBlackBox.InputAndOutput;
+                    var ioStateKI = ConvertToKI(ioStateBins);
 
-                    //Submit to related producers
-                    foreach (var i in inputState)
+                    //Submit to producers
+                    foreach (var i in ioStateKI)
                     {
-                        string inputName = i.Key;
+                        string ioName = i.Key;
                         KnowInstance ki = i.Value;
-                        Producer prod = this.Producers[inputName];
-                        prod.Learn(ki);
-                    }
-                    foreach (var o in outputState)
-                    {
-                        string outputName = o.Key;
-                        KnowInstance ki = o.Value;
-                        Producer prod = this.Producers[outputName];
+                        Producer prod = this.Producers[ioName];
                         prod.Learn(ki);
                     }
 
@@ -210,7 +194,8 @@ namespace KnowProdContBlackBox
                     Thread.Sleep(discBlackBox.TimeInterval_ms);
                 }
             });
-            samplingThread.IsBackground = true;
+            samplingThread.Name = "ProducerBlackBoxSampling";
+            //samplingThread.IsBackground = true;
 
             return samplingThread;
         }

@@ -31,34 +31,25 @@ namespace KnowProdContBlackBox
                 return this.blackBox.TimeInterval_ms;
             }
         }
-        public Dictionary<string, Bin> Input
+        public Dictionary<string, Bin> InputAndOutput
         {
             get
             {
-                Dictionary<string, Bin> dict = new Dictionary<string, Bin>();
-                foreach (var input in blackBox.Input.ToList())
-                {
-                    Discretizer disc = Discretizers[input.Key];
-                    double value = Convert.ToDouble(blackBox.Input[input.Key]);
-                    Bin bin = disc.GetBin(value);
-                    dict[input.Key] = bin;
-                }
-                return dict;
+                return ConvertToBin(blackBox.InputAndOuput);
             }
         }
-        public Dictionary<string, Bin> Output
+        public List<string> InputNames
         {
             get
             {
-                Dictionary<string, Bin> dict = new Dictionary<string, Bin>();
-                foreach (var output in blackBox.Output.ToList())
-                {
-                    Discretizer disc = Discretizers[output.Key];
-                    double value = Convert.ToDouble(blackBox.Output[output.Key]);
-                    Bin bin = disc.GetBin(value);
-                    dict[output.Key] = bin;
-                }
-                return dict;
+                return blackBox.Input.Keys.ToList();
+            }
+        }
+        public List<string> OutputNames
+        {
+            get
+            {
+                return blackBox.Output.Keys.ToList();
             }
         }
         public event EventHandler OnStarting
@@ -80,9 +71,9 @@ namespace KnowProdContBlackBox
 
             //Create a discretizer for each input and output
             foreach (var inputName in blackBox.Input.Keys)
-                Discretizers.Add(inputName, new Discretizer() { GenerateIdDelegate = idManager.GenerateId });
+                Discretizers.Add(inputName, new Discretizer(idManager.GenerateId));
             foreach (var outputName in blackBox.Output.Keys)
-                Discretizers.Add(outputName, new Discretizer() { GenerateIdDelegate = idManager.GenerateId });
+                Discretizers.Add(outputName, new Discretizer(idManager.GenerateId));
 
             //Create a sampling thread for each input and output
             foreach (string inputName in blackBox.Input.Keys)
@@ -107,6 +98,24 @@ namespace KnowProdContBlackBox
             foreach (Thread t in learningThreads.Values)
                 t.Start();
         }
+        private Dictionary<string, Bin> ConvertToBin(Dictionary<string, object> ioState)
+        {
+            var inputStateConverted = new Dictionary<string, Bin>();
+            foreach (var io in ioState)
+            {
+                string ioName = io.Key;
+
+                if (io.Value != null)
+                {
+                    double value = Convert.ToDouble(io.Value);
+                    Bin bin = this.Discretizers[ioName].GetBin(value);
+                    inputStateConverted[ioName] = bin;
+                }else
+                    inputStateConverted[ioName] = null;
+            }
+
+            return inputStateConverted;
+        }
         private Thread CreateLearningThread(string source, string name)
         {
             //Get discretizer and value
@@ -125,7 +134,7 @@ namespace KnowProdContBlackBox
             }
 
             //Create the background sampling thread
-            Thread samplingThread = new Thread
+            Thread learningThread = new Thread
             (delegate ()
             {
                 while (Thread.CurrentThread.IsAlive)
@@ -135,14 +144,12 @@ namespace KnowProdContBlackBox
 
                     //Sample the value twice as fast as the black box changes
                     Thread.Sleep(blackBox.TimeInterval_ms / 2);
-
-                    //If discretizers' sizes are not changing, slow down sampling
-                    // - Not yet implemented
                 }
             });
-            samplingThread.IsBackground = true;
+            learningThread.Name = "DiscreteBlackBoxSampling";
+            //samplingThread.IsBackground = true;
 
-            return samplingThread;
+            return learningThread;
         }
     }
 }

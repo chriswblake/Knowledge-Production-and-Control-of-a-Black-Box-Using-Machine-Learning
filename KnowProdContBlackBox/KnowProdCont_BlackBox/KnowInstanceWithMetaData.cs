@@ -61,6 +61,13 @@ namespace KnowProdContBlackBox
         //Constructor
         public KnowInstanceWithMetaData(KnowInstance knowInstance, IdManager idManager)
         {
+            //Check parameters are not null
+            if (knowInstance == null)
+                throw new ArgumentNullException("knowInstance");
+            if (idManager == null)
+                throw new ArgumentNullException("idManager");
+
+            //Save
             this.InnerKnowInstance = knowInstance;
             this.InnerIdManager = idManager;
         }

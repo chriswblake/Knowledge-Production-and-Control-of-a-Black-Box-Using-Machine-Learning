@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using RLDT;
 using KnowledgeProduction;
 using IdManagement;
@@ -42,22 +43,21 @@ namespace KnowProdContBlackBox
         //Methods - Learning
         private DataVectorTraining ConvertToDataVectorTraining(Dictionary<string, KnowInstance> input, string outputName, KnowInstance output)
         {
-            //Disconnect original input values dictionary
-            input = new Dictionary<string, KnowInstance>(input);
-
             DataVectorTraining dvt = new DataVectorTraining();
-            //Input data
-            foreach(var i in input)
+
+            //Input data becomes Features
+            foreach(var i in input.Where(p=> p.Value != null))
             {
                 string inputName = i.Key;
-                //KnowInstance ki = i.Value;
                 KnowInstanceWithMetaData ki = new KnowInstanceWithMetaData(i.Value, idManager);
                 dvt.Features.Add(new FeatureValuePairWithImportance(inputName, ki, 0));
             }
 
-            //Label data
-            //dvt.Label = new FeatureValuePair(outputName, output);
-            dvt.Label = new FeatureValuePair(outputName, new KnowInstanceWithMetaData(output, idManager));
+            //Output data becomes Label
+            if (output != null)
+                dvt.Label = new FeatureValuePair(outputName, new KnowInstanceWithMetaData(output, idManager));
+            else
+                dvt.Label = null;
 
             return dvt;
         }
@@ -67,7 +67,7 @@ namespace KnowProdContBlackBox
             var outputState = e.outputState;
 
             //Submit each output to the respective learner
-            foreach(var o in outputState)
+            foreach (var o in outputState)
             {
                 //Get relavent parts
                 string outputName = o.Key;
