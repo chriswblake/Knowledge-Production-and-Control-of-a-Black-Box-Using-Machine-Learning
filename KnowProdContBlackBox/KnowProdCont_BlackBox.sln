@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdManagement", "..\IdManage
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IdManagement.Tests", "..\IdManagement\IdManager.Tests\IdManagement.Tests.csproj", "{7BFE19D5-2366-4ADC-83DE-BD30A77B8608}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RLDT", "..\..\Reinforcement-Learning-Based-Decision-Tree\RLDT\RLDT.csproj", "{78BF669B-D7C8-420E-9C3A-9B40AF11E29E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{7BFE19D5-2366-4ADC-83DE-BD30A77B8608}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7BFE19D5-2366-4ADC-83DE-BD30A77B8608}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7BFE19D5-2366-4ADC-83DE-BD30A77B8608}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78BF669B-D7C8-420E-9C3A-9B40AF11E29E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78BF669B-D7C8-420E-9C3A-9B40AF11E29E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78BF669B-D7C8-420E-9C3A-9B40AF11E29E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78BF669B-D7C8-420E-9C3A-9B40AF11E29E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
