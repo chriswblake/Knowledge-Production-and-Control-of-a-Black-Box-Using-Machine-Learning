@@ -34,19 +34,19 @@ namespace BlackBoxModeling.Samples
 
             //Define relationship between outputs and inputs
             //and
-            if ((bool1 >= 5.0) && (bool2 >= 5.0))
+            if ((bool1 >= 4.5) && (bool2 >= 4.5))
                 o["and"] = 5.0;
             else
                 o["and"] = 0.0;
 
             //or
-            if ((bool1 > 5.0) || (bool2 > 5.0))
+            if ((bool1 >= 4.5) || (bool2 >= 4.5))
                 o["or"] = 5.0;
             else
                 o["or"] = 0.0;
 
             //xor
-            if ((bool1 > 5.0) ^ (bool2 > 5.0))
+            if ((bool1 >= 4.5) ^ (bool2 >= 4.5))
                 o["xor"] = 5.0;
             else
                 o["xor"] = 0.0;
