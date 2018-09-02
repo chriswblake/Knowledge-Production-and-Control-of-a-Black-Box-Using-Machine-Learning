@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Linq;
 using Xunit;
 using BlackBoxModeling;
 using IdManagement;
 using KnowledgeProduction;
+using Discretization;
 using static Discretization.DataGeneration;
-using System.Threading;
 
 namespace KnowProdContBlackBox.Tests
 {
@@ -66,15 +67,32 @@ namespace KnowProdContBlackBox.Tests
             var resultCos = prodBlackBox.Producers["cos"].KnowInstances.Values.OfType<KnowInstanceValue>().ToList().Count;
             var resultTan = prodBlackBox.Producers["tan"].KnowInstances.Values.OfType<KnowInstanceValue>().ToList().Count;
 
+            //Check that counts match
             Assert.Equal(discBlackBox.Discretizers["x"].Bins.Count,   resultX);
             Assert.Equal(discBlackBox.Discretizers["sin"].Bins.Count, resultSin);
             Assert.Equal(discBlackBox.Discretizers["cos"].Bins.Count, resultCos);
             Assert.Equal(discBlackBox.Discretizers["tan"].Bins.Count, resultTan);
+
+            //Check that each ID in the discretizer exists in the producer
+            List<string> ioNames = trigBlackBox.Input.Select(p => p.Key).ToList();
+            foreach (string ioName in ioNames)
+            {
+                //Get discretizer and producer
+                var disc = discBlackBox.Discretizers[ioName];
+                var prod = prodBlackBox.Producers[ioName];
+
+                //Check for each bin id in producer
+                foreach (Bin bin in disc.Bins)
+                {
+                    KnowInstance ki = prod.Get(bin.BinID);
+                    Assert.NotNull(ki);
+                }
+            }
         }
 
         [Theory]
-        [InlineData(200)]
-        public void Learn_OnOffPattern_Count8(int iterations)
+        [InlineData(300)]
+        public void Learn_OnOffPattern_MatchingIDs(int iterations)
         {
             List<double> bool1 = new List<double> {
                 0.0,
@@ -104,6 +122,7 @@ namespace KnowProdContBlackBox.Tests
             Random rand = new Random();
             logicBlackBox.Start();
 
+            #region Train
             for (int i = 0; i < iterations; i++)
             {
                 //Change input
@@ -115,7 +134,9 @@ namespace KnowProdContBlackBox.Tests
                 //Wait until next sample time
                 Thread.Sleep(logicBlackBox.TimeInterval_ms);
             }
+            #endregion
 
+            //Check that there are 8 items for each
             Assert.Equal(8, prodBlackBox.Producers["bool1"].KnowInstances.Count);
             Assert.Equal(8, prodBlackBox.Producers["bool2"].KnowInstances.Count);
             Assert.Equal(8, prodBlackBox.Producers["and"].KnowInstances.Count);
@@ -126,6 +147,23 @@ namespace KnowProdContBlackBox.Tests
             //1 switch to on to off
             //1 holding on
             //1 holding off
+
+            //Check that each ID in the discretizer exists in the producer
+            List<string> ioNames = logicBlackBox.Input.Select(p => p.Key).ToList();
+            foreach (string ioName in ioNames)
+            {
+                //Get discretizer and producer
+                var disc = discBlackBox.Discretizers[ioName];
+                var prod = prodBlackBox.Producers[ioName];
+
+                //Check for each bin id in producer
+                foreach (Bin bin in disc.Bins)
+                {
+                    KnowInstance ki = prod.Get(bin.BinID);
+                    Assert.NotNull(ki);
+                }
+            }
+            
 
         }
     }
