@@ -92,12 +92,11 @@ namespace KnowProdContBlackBox
                 {
                     //Get state of inputs and outputs
                     var ioState = prodBlackBox.InputAndOutput;
-
-                    //Save to memory
                     AddToMemory(ioState);
 
                     //Send through interpreter
                     var ioStateInter = Interpret(_prevIOState, ioState);
+                    AddToMemory(ioStateInter);
 
                     //Update prev state
                     _prevIOState = ioState;
@@ -111,22 +110,6 @@ namespace KnowProdContBlackBox
 
             return samplingThread;
         }
-        //private void AddToMemory(Dictionary<string, KnowInstance> inputState, Dictionary<string, KnowInstance> outputState)
-        //{
-        //    //Check memory length
-        //    if (MemoryInput.Count == MemorySize)
-        //    {
-        //        MemoryInput.Dequeue();
-        //        MemoryOutput.Dequeue();
-        //    }
-
-        //    //Add the new item
-        //    MemoryInput.Enqueue(inputState);
-        //    MemoryOutput.Enqueue(outputState);
-
-        //    //Trigger event
-        //    OnAddedToMemory?.Invoke(this, new AddedToMemoryEventArgs(inputState, outputState));
-        //}
         private void AddToMemory(Dictionary<string, KnowInstance> ioState)
         {
             //Check memory length

@@ -38,7 +38,23 @@ namespace KnowProdContBlackBox
             this.interpreter.OnKnowInstanceRemoving += Interpreter_OnKnowInstanceRemoving;
         }
 
-        
+        //Events
+        private void Interpreter_OnAddedToMemory(object sender, Interpreter.AddedToMemoryEventArgs e)
+        {
+            Learn(e.inputState, e.outputState);
+        }
+        private void Interpreter_OnKnowInstanceRemoving(object sender, ProducerBlackBox.KnowInstanceRemovingEventArgs e)
+        {
+            string ioName = e.ProducerName; //The name of the input or output.
+            KnowInstance ki = e.RemovedKnowInstance; //The piece of removed knowledge.
+
+            //Create equivalent feature value pair
+            FeatureValuePair fvp = new FeatureValuePair(ioName, ki);
+
+            //Remove from all policies //Slow: this should be parallelized
+            foreach (Policy thePolicy in this.Policies.Values)
+                thePolicy.RemoveFeatureValuePair(fvp);
+        }
 
         //Methods - Learning
         private DataVectorTraining ConvertToDataVectorTraining(Dictionary<string, KnowInstance> input, string outputName, KnowInstance output)
@@ -61,11 +77,8 @@ namespace KnowProdContBlackBox
 
             return dvt;
         }
-        private void Interpreter_OnAddedToMemory(object sender, Interpreter.AddedToMemoryEventArgs e)
+        private void Learn(Dictionary<string, KnowInstance> inputState, Dictionary<string, KnowInstance> outputState)
         {
-            var inputState = e.inputState;
-            var outputState = e.outputState;
-
             //Submit each output to the respective learner
             foreach (var o in outputState)
             {
@@ -77,17 +90,6 @@ namespace KnowProdContBlackBox
                 policy.Learn(dvt);
             }
         }
-        private void Interpreter_OnKnowInstanceRemoving(object sender, ProducerBlackBox.KnowInstanceRemovingEventArgs e)
-        {
-            string ioName = e.ProducerName; //The name of the input or output.
-            KnowInstance ki = e.RemovedKnowInstance; //The piece of removed knowledge.
-
-            //Create equivalent feature value pair
-            FeatureValuePair fvp = new FeatureValuePair(ioName, ki);
-
-            //Remove from all policies //Slow: this should be parallelized
-            foreach (Policy thePolicy in this.Policies.Values)
-                thePolicy.RemoveFeatureValuePair(fvp);
-        }
+        
     }
 }
