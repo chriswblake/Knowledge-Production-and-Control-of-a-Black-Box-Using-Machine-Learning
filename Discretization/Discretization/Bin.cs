@@ -478,7 +478,7 @@ namespace Discretization
                     s += string.Format("({0:N2}) [{1:N2}", avgMinus6Sigma, this.Low);
 
                 //Add the average
-                s += string.Format(", |{0:N2}|, ", this.Average);
+                s += string.Format(" |{0:N2}| ", this.Average);
 
                 //Add high and upper sigma
                 if (avgPlus6Sigma <= this.High)
@@ -494,7 +494,7 @@ namespace Discretization
                 //s += string.Format(" [{0:N1}]", this.Percent1StdDev);
                 return s;// string.Format("({0:N3}{3:N3}) \t|{1:N3}| \t({4:N3}){2:N3}({4:N3}) (-NStdDev)Low|Avg|High(+NStdDev) \tCount:{5:N2}", this.Low, this.Average, this.High, this.AvgMinusNSigma, this.AvgPlusNSigma, this.Count);
             }
-        }
+        }        
     }
 
     public enum BinAction
