@@ -17,8 +17,6 @@ namespace KnowProdContBlackBox
         private Thread samplingThread;
 
         //Properties
-        public Queue<Dictionary<string, KnowInstance>> MemoryInput { get; set; } = new Queue<Dictionary<string, KnowInstance>>();
-        public Queue<Dictionary<string, KnowInstance>> MemoryOutput { get; set; } = new Queue<Dictionary<string, KnowInstance>>();
         public Queue<Dictionary<string, KnowInstance>> MemoryIOState { get; set; } = new Queue<Dictionary<string, KnowInstance>>();
         public int MemorySize { get; set; } = 20;
 

@@ -91,7 +91,7 @@ namespace KnowProdContBlackBox.Tests
         }
 
         [Theory]
-        [InlineData(300)]
+        [InlineData(500)]
         public void Learn_OnOffPattern_MatchingIDs(int iterations)
         {
             List<double> bool1 = new List<double> {

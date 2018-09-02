@@ -15,7 +15,7 @@ namespace KnowProdContBlackBox.Tests
     public class InterpreterTests
     {
         [Theory]
-        [InlineData(300)]
+        [InlineData(500)]
         public void Learn_OnOffPattern_Count4(int iterations)
         {
             List<double> bool1 = new List<double> {
@@ -84,7 +84,7 @@ namespace KnowProdContBlackBox.Tests
 
             #region Assert
             List<KnowInstance> vocabBool1 = prodBlackBox.Producers["bool1"].KnowInstances.Values.OrderBy(p => p.ID).ToList();
-            List<KnowInstance> memoryBool1 = interpreter.MemoryInput.Select(p => p["bool1"]).ToList();
+            List<KnowInstance> memoryBool1 = interpreter.MemoryIOState.Select(p => p["bool1"]).ToList();
             foreach(KnowInstance ki in vocabBool1)
             {
                 //Skip bins that have never been used.
