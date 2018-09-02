@@ -31,7 +31,7 @@ namespace KnowProdContBlackBox.Tests
 
         [Theory]
         [InlineData(1000)]
-        public void Learn_OnOffPattern_Count4(int iterations)
+        public void Learn_LogicOperators(int iterations)
         {
             List<double> bool1 = new List<double> {
                 0.0,
@@ -98,6 +98,65 @@ namespace KnowProdContBlackBox.Tests
             }
             #endregion
 
+            //Get Discretizers and Producers
+            var disc1 = discBlackBox.Discretizers["bool1"];
+            var disc2 = discBlackBox.Discretizers["bool1"];
+            var discxor = discBlackBox.Discretizers["xor"];
+            var prod1 = prodBlackBox.Producers["bool1"];
+            var prod2 = prodBlackBox.Producers["bool2"];
+            var prodxor = prodBlackBox.Producers["xor"];
+
+            //Check if training was sucessfull
+            Assert.InRange(prod1.KnowInstances.Count, 8, 10);
+            Assert.InRange(prod2.KnowInstances.Count, 8, 10);
+            Assert.InRange(prodxor.KnowInstances.Count, 8, 10);
+
+            //Name Entities
+            #region bool1
+            KnowInstance bool1_On = prod1.Get(disc1.GetBin(5.0).BinID);
+            KnowInstance bool1_Off = prod1.Get(disc1.GetBin(0.0).BinID);
+            KnowInstance bool1_StayOff = prod1.Get(bool1_Off, bool1_Off);
+            KnowInstance bool1_StayOn = prod1.Get(bool1_On, bool1_On);
+            KnowInstance bool1_SwitchOff = prod1.Get(bool1_On, bool1_Off);
+            KnowInstance bool1_SwitchOn = prod1.Get(bool1_Off, bool1_On);
+            idManager.SetName(bool1_On.ID, "On");
+            idManager.SetName(bool1_Off.ID, "Off");
+            idManager.SetName(bool1_StayOff.ID, "Stay Off");
+            idManager.SetName(bool1_StayOn.ID, "Stay On");
+            idManager.SetName(bool1_SwitchOff.ID, "Switch Off");
+            idManager.SetName(bool1_SwitchOn.ID, "Switch On");
+            #endregion
+            #region bool2
+            KnowInstance bool2_On = prod2.Get(disc2.GetBin(5.0).BinID);
+            KnowInstance bool2_Off = prod2.Get(disc2.GetBin(0.0).BinID);
+            KnowInstance bool2_StayOff = prod2.Get(bool2_Off, bool2_Off);
+            KnowInstance bool2_StayOn = prod2.Get(bool2_On, bool2_On);
+            KnowInstance bool2_SwitchOff = prod2.Get(bool2_On, bool2_Off);
+            KnowInstance bool2_SwitchOn = prod2.Get(bool2_Off, bool2_On);
+            idManager.SetName(bool2_On.ID, "On");
+            idManager.SetName(bool2_Off.ID, "Off");
+            idManager.SetName(bool2_StayOff.ID, "Stay Off");
+            idManager.SetName(bool2_StayOn.ID, "Stay On");
+            idManager.SetName(bool2_SwitchOff.ID, "Switch Off");
+            idManager.SetName(bool2_SwitchOn.ID, "Switch On");
+            #endregion
+            #region boolxor
+            KnowInstance xor_On = prodxor.Get(discxor.GetBin(5.0).BinID);
+            KnowInstance xor_Off = prodxor.Get(discxor.GetBin(0.0).BinID);
+            KnowInstance xor_StayedOff = prodxor.Get(xor_Off, xor_Off);
+            KnowInstance xor_StayedOn = prodxor.Get(xor_On, xor_On);
+            KnowInstance xor_SwitchedOff = prodxor.Get(xor_On, xor_Off);
+            KnowInstance xor_SwitchedOn = prodxor.Get(xor_Off, xor_On);
+            idManager.SetName(xor_On.ID, "On");
+            idManager.SetName(xor_Off.ID, "Off");
+            idManager.SetName(xor_StayedOff.ID, "Stayed Off");
+            idManager.SetName(xor_StayedOn.ID, "Stayed On");
+            idManager.SetName(xor_SwitchedOff.ID, "Switched Off");
+            idManager.SetName(xor_SwitchedOn.ID, "Switched On");
+            #endregion
+
+            return;
+
             //Decision Trees (detailed and simple)
             var treeSettingsBlanksSubScores = new RLDT.DecisionTree.TreeSettings() { ShowBlanks = true, ShowSubScores = true };
             var treeSettingsBlanks = new RLDT.DecisionTree.TreeSettings() { ShowBlanks = true, ShowSubScores = false };
@@ -109,9 +168,9 @@ namespace KnowProdContBlackBox.Tests
             string htmlTreeStyle = RLDT.DecisionTree.TreeNode.DefaultStyling;
 
             //Tables of vocabulary
-            string htmlBool1 = "bool1 Vocabulary" + KnowInstance.ToHtmlTable(prodBlackBox.Producers["bool1"].KnowInstances.Values.ToList());
-            string htmlBool2 = "bool2 Vocabulary" + KnowInstance.ToHtmlTable(prodBlackBox.Producers["bool2"].KnowInstances.Values.ToList());
-            string htmlXor = "xor Vocabulary" + KnowInstance.ToHtmlTable(prodBlackBox.Producers["xor"].KnowInstances.Values.ToList());
+            string htmlBool1 = "bool1 Vocabulary" + HtmlTools.ToHtmlTable(prodBlackBox.Producers["bool1"].KnowInstances.Values.ToList());
+            string htmlBool2 = "bool2 Vocabulary" + HtmlTools.ToHtmlTable(prodBlackBox.Producers["bool2"].KnowInstances.Values.ToList());
+            string htmlXor = "xor Vocabulary" + HtmlTools.ToHtmlTable(prodBlackBox.Producers["xor"].KnowInstances.Values.ToList());
             string htmlVocab = string.Format(@"
             <table>
             <tr>
