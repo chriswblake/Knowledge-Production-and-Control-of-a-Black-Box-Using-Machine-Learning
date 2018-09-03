@@ -30,7 +30,7 @@ namespace KnowProdContBlackBox.Tests
         }
 
         [Theory]
-        [InlineData(500)]
+        [InlineData(1000)]
         public void Learn_LogicOperators(int iterations)
         {
             List<double> bool1 = new List<double> {
@@ -163,7 +163,7 @@ namespace KnowProdContBlackBox.Tests
             var treeSettingsBlanksSubScores = new RLDT.DecisionTree.TreeSettings() { ShowBlanks = true, ShowSubScores = true };
             var treeSettingsBlanks = new RLDT.DecisionTree.TreeSettings() { ShowBlanks = true, ShowSubScores = false };
             var treeSettingsSimple = new RLDT.DecisionTree.TreeSettings() { ShowBlanks = false, ShowSubScores = false };
-            var treeDisplaySettings = new RLDT.DecisionTree.TreeNode.TreeDisplaySettings() { ValueDisplayProperty="IdAndName", LabelDisplayProperty="IdAndName" };
+            var treeDisplaySettings = new RLDT.DecisionTree.TreeNode.TreeDisplaySettings() { ValueDisplayProperty="IdName", LabelDisplayProperty="IdName" };
             string htmlTree_BlanksSubScores = policyxor.ToDecisionTree(treeSettingsBlanksSubScores).ToHtmlTree(treeDisplaySettings);
             string htmlTree_Blanks = policyxor.ToDecisionTree(treeSettingsBlanks).ToHtmlTree(treeDisplaySettings);
             string htmlTree_Simple = policyxor.ToDecisionTree(treeSettingsSimple).ToHtmlTree(treeDisplaySettings);

@@ -73,9 +73,21 @@ namespace KnowProdContBlackBox
             //Create a producer for each input and output. Subscribe to changes in the discretizer
             foreach (var ioName in discBlackBox.InputAndOutput.Keys)
             {
-                Producers.Add(ioName, new Producer() { GenerateIdDelegate = idManager.GenerateId });
-                discBlackBox.Discretizers[ioName].OnMergeBins += Discretizer_OnMergeBins;
-                discBlackBox.Discretizers[ioName].OnSplitBin += Discretizer_OnSplitBin;
+                //Create producer
+                Producer prod = new Producer() { GenerateIdDelegate = idManager.GenerateId, Name = ioName };
+                prod.OnKnowInstanceRemoved += Producer_OnKnowInstanceRemoved;
+                Producers.Add(ioName, prod);
+
+                //Link discretizer to producer for synchronization
+                Discretizer disc = discBlackBox.Discretizers[ioName];
+                disc.OnBinAdded += delegate (object sender, Discretizer.DiscretizerEventArgs e)
+                {
+                    prod.Add(e.SourceBin.BinID, e.SourceBin);
+                };
+                disc.OnBinRemoved += delegate (object sender, Discretizer.DiscretizerEventArgs e)
+                {
+                    prod.Remove(e.SourceBin.BinID);
+                };
             }
 
             //Create knowledge instances for existing bins
@@ -93,61 +105,18 @@ namespace KnowProdContBlackBox
             this.discBlackBox.OnStarting += DiscBlackBox_OnStarting; //Start when black box starts
         }
 
-        //Methods - Sync with discretizers
-        private void Discretizer_OnMergeBins(object sender, Discretizer.MergeBinsEventArgs e)
-        { 
-            Discretizer disc = (Discretizer)sender;
-
-            //Get producer
-            string prodName = discBlackBox.Discretizers.Where(p => p.Value == disc).First().Key; //This is not a fast method and should be replaced someday.
-            Producer prod = Producers[prodName];
-
-            //Find KnowInstances
-            KnowInstance origKnowInstanceLow = prod.Get(e.OrigBinLow.BinID); 
-            KnowInstance origKnowInstanceHigh = prod.Get(e.OrigBinLow.BinID);
-
-            //Trigger Remove Self events
-            origKnowInstanceLow.RemoveSelf();
-            origKnowInstanceHigh.RemoveSelf();
-
-            //Trigger events
-            //OnKnowInstanceRemoving?.Invoke(this, new KnowInstanceRemovingEventArgs(prodName, origKnowInstanceLow));
-            //OnKnowInstanceRemoving?.Invoke(this, new KnowInstanceRemovingEventArgs(prodName, origKnowInstanceHigh));
-
-            //Remove old KnowInstance items
-            prod.Remove(e.OrigBinLow.BinID);
-            prod.Remove(e.OrigBinHigh.BinID);
-            RemovedKnowInstances.Add(origKnowInstanceLow.ID.ToString());
-            RemovedKnowInstances.Add(origKnowInstanceHigh.ID.ToString());
-
-            //Create new KnowInstance item
-            prod.Add(e.NewBin.BinID, e.NewBin);
-        }
-        private void Discretizer_OnSplitBin(object sender, Discretizer.SplitBinEventArgs e)
+        //Events
+        private void Producer_OnKnowInstanceRemoved(object sender, Producer.KnowInstanceRemovedEventArgs e)
         {
-            Discretizer disc = (Discretizer)sender;
-
-            //Find producer
-            string prodName = discBlackBox.Discretizers.Where(p => p.Value == disc).First().Key; //This is not a fast method and should be replaced someday.
-            Producer prod = Producers[prodName];
-
-            //Find KnowInstances
-            KnowInstance origKnowInstance = prod.Get(e.OrigBin.BinID);
-
-            //Trigger Remove Self events
-            origKnowInstance.RemoveSelf();
-
-            //Remove old knowledge instance
-            prod.Remove(e.OrigBin.BinID);
-            RemovedKnowInstances.Add(origKnowInstance.ID.ToString());
-
-            //Create new items
-            prod.Add(e.NewBinLow.BinID, e.NewBinLow);
-            prod.Add(e.NewBinHigh.BinID, e.NewBinHigh);
+            //Trigger Event
+            OnKnowInstanceRemoved?.Invoke(this, new Producer.KnowInstanceRemovedEventArgs()
+            {
+                SourceProducer = e.SourceProducer,
+                SourceKnowInstance = e.SourceKnowInstance
+            });
         }
-
-        public List<string> RemovedKnowInstances { get; set; } = new List<string>();
-
+        public event EventHandler<Producer.KnowInstanceRemovedEventArgs> OnKnowInstanceRemoved;
+        
 
         //Methods - Sampling/Learning
         private Dictionary<string, KnowInstance> ConvertToKI(Dictionary<string, Bin> ioState)

@@ -83,6 +83,7 @@ namespace KnowProdContBlackBox.Tests
             #endregion
 
             #region Assert
+            Assert.InRange(prodBlackBox.Producers["bool1"].KnowInstances.Count, 8, 10);
             List<KnowInstance> vocabBool1 = prodBlackBox.Producers["bool1"].KnowInstances.Values.OrderBy(p => p.ID).ToList();
             List<KnowInstance> memoryBool1 = interpreter.MemoryIOState.Select(p => p["bool1"]).ToList();
             foreach(KnowInstance ki in vocabBool1)

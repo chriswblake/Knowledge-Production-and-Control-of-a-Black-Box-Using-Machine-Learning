@@ -14,6 +14,7 @@ namespace KnowledgeProduction
         public Dictionary<int,KnowInstance> KnowInstances = new Dictionary<int, KnowInstance>(); //Stored by hashcode, which is based on IDs.
         
         //Properties
+        public string Name { get; set; }
         public Func<int> GenerateIdDelegate { get; set; } 
 
         //Constructors
@@ -105,18 +106,40 @@ namespace KnowledgeProduction
             {
                 //Remove all instances that contain this instance
                 var symbols = KnowInstances.Where(d => d.Value.GetType() == typeof(KnowInstanceSymbol)).ToList(); //Find only symbols
-                symbols = symbols.Where(k => ((KnowInstanceSymbol)k.Value).Contains(id)).ToList(); //Only symobols containing the id
+                symbols = symbols.Where(k => ((KnowInstanceSymbol)k.Value).Contains(id)).ToList(); //Only symbols containing the id
                 foreach (var s in symbols)
+                { 
                     KnowInstances.Remove(s.Key);
+                    OnKnowInstanceRemoved?.Invoke(this, new KnowInstanceRemovedEventArgs()
+                    {
+                        SourceProducer = this,
+                        SourceKnowInstance = s.Value
+                    });
+                }
 
                 //Remove the item
                 if (KnowInstances.ContainsKey(id))
+                {
+                    KnowInstance kir = this.KnowInstances[id];
                     KnowInstances.Remove(id);
-
+                    OnKnowInstanceRemoved?.Invoke(this, new KnowInstanceRemovedEventArgs()
+                    {
+                        SourceProducer = this,
+                        SourceKnowInstance = kir
+                    });
+                }
                 //Check if stored in cash
                 if (_prevInstance != null && _prevInstance.ID == id)
                     _prevInstance = null;
             }
+        }
+
+        //Events
+        public event EventHandler<KnowInstanceRemovedEventArgs> OnKnowInstanceRemoved;
+        public class KnowInstanceRemovedEventArgs
+        {
+            public Producer SourceProducer { get; set; }
+            public KnowInstance SourceKnowInstance { get; set; }
         }
 
         //Cache - Methods

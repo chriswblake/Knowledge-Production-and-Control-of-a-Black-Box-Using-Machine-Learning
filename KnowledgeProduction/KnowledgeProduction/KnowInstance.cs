@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace KnowledgeProduction
 {
-    public abstract partial class KnowInstance : IComparable, IRemoveSelf
+    public abstract partial class KnowInstance : IComparable
     {
         //Properties
         public int ID { get; private set; }
@@ -36,13 +36,6 @@ namespace KnowledgeProduction
             else
                 return 0;
         }
-
-        //Event
-        public void RemoveSelf()
-        {
-            OnRemoveSelf?.Invoke(this, new EventArgs());
-        }
-        public event EventHandler OnRemoveSelf;
     }
 
     public abstract partial class KnowInstance

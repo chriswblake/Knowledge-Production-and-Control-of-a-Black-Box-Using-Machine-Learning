@@ -59,11 +59,11 @@ namespace KnowProdContBlackBox
             add { this.prodBlackBox.OnStarted += value; }
             remove { this.prodBlackBox.OnStarted -= value; }
         }
-        //public event EventHandler<ProducerBlackBox.KnowInstanceRemovingEventArgs> OnKnowInstanceRemoving
-        //{
-        //    add { this.prodBlackBox.OnKnowInstanceRemoving += value; }
-        //    remove { this.prodBlackBox.OnKnowInstanceRemoving -= value; }
-        //}
+        public event EventHandler<Producer.KnowInstanceRemovedEventArgs> OnKnowInstanceRemoved
+        {
+            add { this.prodBlackBox.OnKnowInstanceRemoved += value; }
+            remove { this.prodBlackBox.OnKnowInstanceRemoved -= value; }
+        }
 
         //Constructors
         public Interpreter(ProducerBlackBox prodBlackBox)

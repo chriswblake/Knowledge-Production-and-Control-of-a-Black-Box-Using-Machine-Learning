@@ -33,9 +33,7 @@ namespace KnowProdContBlackBox
 
             //As items are placed in memory send them to the learner.
             this.interpreter.OnAddedToMemory += Interpreter_OnAddedToMemory;
-
-            //As knowledge items are removed, remove them from the policy
-            //this.interpreter.OnKnowInstanceRemoving += Interpreter_OnKnowInstanceRemoving;
+            this.interpreter.OnKnowInstanceRemoved += Interpreter_OnKnowInstanceRemoved;
         }
 
         //Events
@@ -43,18 +41,29 @@ namespace KnowProdContBlackBox
         {
             Learn(e.inputState, e.outputState);
         }
-        //private void Interpreter_OnKnowInstanceRemoving(object sender, ProducerBlackBox.KnowInstanceRemovingEventArgs e)
-        //{
-        //    string ioName = e.ProducerName; //The name of the input or output.
-        //    KnowInstance ki = e.RemovedKnowInstance; //The piece of removed knowledge.
+        private void Interpreter_OnKnowInstanceRemoved(object sender, Producer.KnowInstanceRemovedEventArgs e)
+        {
+            Producer prod = e.SourceProducer;
+            KnowInstance ki = e.SourceKnowInstance;
 
-        //    //Create equivalent feature value pair
-        //    FeatureValuePair fvp = new FeatureValuePair(ioName, ki);
+            //If producer is an output
+            if (Policies.ContainsKey(prod.Name))
+            {
+                FeatureValuePair label = new FeatureValuePair(prod.Name, ki);
+                Policies[prod.Name].RemoveLabel(label);
+                return;
+            }
 
-        //    //Remove from all policies //Slow: this should be parallelized
-        //    foreach (Policy thePolicy in this.Policies.Values)
-        //        thePolicy.RemoveFeatureValuePair(fvp);
-        //}
+            //If feature is an input, send it to all policies
+            foreach (string outputName in this.interpreter.OutputNames)
+            {
+                Policy policy = this.Policies[outputName];
+                FeatureValuePair fvp = new FeatureValuePair(prod.Name, ki);
+
+                policy.RemoveStatesWithFeature(fvp);
+                policy.RemoveQueriesWithFeature(fvp);
+            }
+        }
 
         //Methods - Learning
         private DataVectorTraining ConvertToDataVectorTraining(Dictionary<string, KnowInstance> input, string outputName, KnowInstance output)
@@ -89,7 +98,6 @@ namespace KnowProdContBlackBox
                 DataVectorTraining dvt = ConvertToDataVectorTraining(inputState, outputName, label);
                 policy.Learn(dvt);
             }
-        }
-        
+        }        
     }
 }

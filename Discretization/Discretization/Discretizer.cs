@@ -20,6 +20,7 @@ namespace Discretization
         /// </summary>
 
         //Properties
+        public string Name { get; set; }
         public List<Bin> Bins {get; set;} 
         public List<Bin> BinsOrderedByLow { get { return this.Bins.OrderBy(p => p.Low).ToList(); }}
         [JsonIgnore]
@@ -98,8 +99,10 @@ namespace Discretization
             switch (theAction)
             {
                 case BinAction.SplitAtAvg:
-                    SplitBin(theBin, theBin.Average);
-                    break;
+                    { 
+                        SplitBin(theBin, theBin.Average);
+                        break;
+                    }
                 case BinAction.SplitAtNegNSigma:
                     { 
                         double splitPoint = theBin.Average -  (6+0.1) * theBin.StandardDeviation; //buffer of 10% of 1 stddev
@@ -171,12 +174,26 @@ namespace Discretization
             }
 
             //Update Bins list
-            Bins.Remove(theBin);
             Bins.Add(binLow);
             Bins.Add(binHigh);
+            Bins.Remove(theBin);
 
-            //Trigger event
-            OnSplitBin?.Invoke(this, new SplitBinEventArgs { OrigBin = theBin, NewBinLow=binLow, NewBinHigh=binHigh });
+            //Trigger Events
+            OnBinAdded?.Invoke(this, new DiscretizerEventArgs()
+            {
+                SourceDiscretizer = this,
+                SourceBin = binLow
+            });
+            OnBinAdded?.Invoke(this, new DiscretizerEventArgs()
+            {
+                SourceDiscretizer = this,
+                SourceBin = binHigh
+            });
+            OnBinRemoved?.Invoke(this, new DiscretizerEventArgs()
+            {
+                SourceDiscretizer = this,
+                SourceBin = theBin
+            });
 
             //Return new bins
             return new List<Bin> {binLow, binHigh};
@@ -204,13 +221,28 @@ namespace Discretization
                 combinedBin.Sum = binLow.Sum + binHigh.Sum;
                 combinedBin.SquareSum = binLow.SquareSum + binHigh.SquareSum;
             }
+
             //Update Bins list
+            Bins.Add(combinedBin);
             Bins.Remove(binLow);
             Bins.Remove(binHigh);
-            Bins.Add(combinedBin);
 
             //Trigger event
-                OnMergeBins?.Invoke(this, new MergeBinsEventArgs { OrigBinLow = binLow, OrigBinHigh = binHigh, NewBin = combinedBin });
+            OnBinAdded?.Invoke(this, new DiscretizerEventArgs()
+            {
+                SourceDiscretizer = this,
+                SourceBin = combinedBin
+            });
+            OnBinRemoved?.Invoke(this, new DiscretizerEventArgs()
+            {
+                SourceDiscretizer = this,
+                SourceBin = binLow
+            });
+            OnBinRemoved?.Invoke(this, new DiscretizerEventArgs()
+            {
+                SourceDiscretizer = this,
+                SourceBin = binHigh
+            });
 
             return combinedBin;
         }
@@ -245,19 +277,12 @@ namespace Discretization
         }
 
         //Events
-        public event EventHandler<SplitBinEventArgs> OnSplitBin;
-        public event EventHandler<MergeBinsEventArgs> OnMergeBins;
-        public class SplitBinEventArgs : EventArgs
+        public event EventHandler<DiscretizerEventArgs> OnBinAdded;
+        public event EventHandler<DiscretizerEventArgs> OnBinRemoved;
+        public class DiscretizerEventArgs : EventArgs
         {
-            public Bin OrigBin;
-            public Bin NewBinLow;
-            public Bin NewBinHigh;
-        }
-        public class MergeBinsEventArgs : EventArgs
-        {
-            public Bin OrigBinLow;
-            public Bin OrigBinHigh;
-            public Bin NewBin;
+            public Discretizer SourceDiscretizer { get; set; }
+            public Bin SourceBin { get; set; }
         }
 
         //Debug
@@ -278,7 +303,7 @@ namespace Discretization
         {
             get
             {
-                return DevelopmentHistory.Where(p => p.Action != BinAction.InsufficientData).ToList();
+                return DevelopmentHistory.Where(p => p.Action != BinAction.InsufficientData && p.Action != BinAction.Undecided && p.Action != BinAction.None).ToList();
             }
         }
     }
@@ -304,7 +329,7 @@ namespace Discretization
         {
             get
             { 
-                return string.Format("Bins={0}, {1}: {2} {3}", this.Bins.Count, this.Action, this.ModifiedBin.DebuggerDisplay);
+                return string.Format("Bins={0}, {1}: {2}", this.Bins.Count, this.Action, this.ModifiedBin.DebuggerDisplay);
             }
         }
     }

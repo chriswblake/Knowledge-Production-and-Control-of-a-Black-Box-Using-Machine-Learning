@@ -165,58 +165,17 @@ namespace Discretization.Tests
             });
             bin2.MinPointsForAction = 2;
             disc.Bins.AddRange(new List<Bin> { bin1, bin2, bin3 });
-            bool eventRan = false;
-            Discretizer.SplitBinEventArgs eventArgs = null;
-            disc.OnSplitBin += delegate (object obj, Discretizer.SplitBinEventArgs args)
-            {
-                eventRan = true;
-                eventArgs = args;
-            };
+
+            Discretizer.DiscretizerEventArgs removeEventArgs = null;
+            Discretizer.DiscretizerEventArgs addEventArgs = null;
+            disc.OnBinRemoved += delegate (object obj, Discretizer.DiscretizerEventArgs e) { removeEventArgs = e; };
+            disc.OnBinAdded += delegate (object obj, Discretizer.DiscretizerEventArgs e) { addEventArgs = e; };
 
             List<Bin> results = disc.SplitBin(bin2, -7);
 
-            Assert.True(eventRan);
-            Assert.Equal(bin2.BinID, eventArgs.OrigBin.BinID);
-            Assert.Equal(bin2.Low, eventArgs.NewBinLow.Low);
-            Assert.Equal(bin2.High, eventArgs.NewBinHigh.High);
+            Assert.NotNull(removeEventArgs);
+            Assert.NotNull(addEventArgs);
         }
-        [Fact]
-        public void OnMergeBins_AddedSubscriptions_EventRan()
-        {
-            Discretizer disc = new Discretizer() { GenerateIdDelegate = GenerateId };
-            disc.Bins.Clear();
-            Bin bin1 = new Bin(GenerateId(), double.NegativeInfinity, 0);
-            Bin bin2 = new Bin(GenerateId(), 0, 2.5);
-            Bin bin3 = new Bin(GenerateId(), 2.5, double.PositiveInfinity);
-            bin2.AddValues(new List<double> {
-                2,
-                2,
-                2,
-            });
-            bin3.AddValues(new List<double> {
-                3,
-                4,
-                4,
-                4,
-            });
-            disc.Bins.AddRange(new List<Bin> { bin1, bin2, bin3 });
-            bool eventRan = false;
-            Discretizer.MergeBinsEventArgs eventArgs = null;
-            disc.OnMergeBins += delegate (object obj, Discretizer.MergeBinsEventArgs args)
-            {
-                eventRan = true;
-                eventArgs = args;
-            };
-
-            Bin combinedBin = disc.MergeBins(bin2, bin3, true);
-
-            Assert.True(eventRan);
-            Assert.Equal(bin2.BinID, eventArgs.OrigBinLow.BinID);
-            Assert.Equal(bin3.BinID, eventArgs.OrigBinHigh.BinID);
-            Assert.Equal(bin2.Low, eventArgs.NewBin.Low);
-            Assert.Equal(bin3.High, eventArgs.NewBin.High);
-        }
-
 
         [Fact]
         public void Equals_SameDiscretizers_true()

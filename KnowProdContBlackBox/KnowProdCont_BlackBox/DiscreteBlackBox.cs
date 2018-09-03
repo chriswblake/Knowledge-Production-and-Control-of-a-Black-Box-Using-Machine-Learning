@@ -72,12 +72,13 @@ namespace KnowProdContBlackBox
             //Create a discretizer for each input and output
             foreach (var inputName in blackBox.Input.Keys)
             { 
-                Discretizers.Add(inputName, new Discretizer(idManager.GenerateId));
+                Discretizers.Add(inputName, new Discretizer(idManager.GenerateId) { Name = inputName });
                 learningThreads.Add(inputName, CreateLearningThread("input", inputName));
+
             }
             foreach (var outputName in blackBox.Output.Keys)
             {
-                Discretizers.Add(outputName, new Discretizer(idManager.GenerateId));
+                Discretizers.Add(outputName, new Discretizer(idManager.GenerateId) { Name = outputName });
                 learningThreads.Add(outputName, CreateLearningThread("output", outputName));
             }
 
@@ -146,7 +147,7 @@ namespace KnowProdContBlackBox
                     Thread.Sleep(blackBox.TimeInterval_ms / 2);
                 }
             });
-            learningThread.Name = "DiscreteBlackBoxSampling";
+            learningThread.Name = "DiscreteBlackBox_LearningThread_"+name;
             //samplingThread.IsBackground = true;
 
             return learningThread;

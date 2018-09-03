@@ -28,11 +28,18 @@ namespace KnowProdContBlackBox
                 InnerIdManager.SetName(InnerKnowInstance.ID, value);
             }
         }
-        public string IdAndName
+        public string IdName
         {
             get
             {
                 return string.Format("({0}) {1}", InnerKnowInstance.ID, InnerIdManager.GetName(InnerKnowInstance.ID));
+            }
+        }
+        public string IdNameContent
+        {
+            get
+            {
+                return string.Format("({0}) {1} {2}", InnerKnowInstance.ID, InnerIdManager.GetName(InnerKnowInstance.ID), InnerKnowInstance);
             }
         }
         public string Description
