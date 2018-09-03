@@ -71,15 +71,15 @@ namespace KnowProdContBlackBox
 
             //Create a discretizer for each input and output
             foreach (var inputName in blackBox.Input.Keys)
+            { 
                 Discretizers.Add(inputName, new Discretizer(idManager.GenerateId));
-            foreach (var outputName in blackBox.Output.Keys)
-                Discretizers.Add(outputName, new Discretizer(idManager.GenerateId));
-
-            //Create a sampling thread for each input and output
-            foreach (string inputName in blackBox.Input.Keys)
                 learningThreads.Add(inputName, CreateLearningThread("input", inputName));
-            foreach (string outputName in blackBox.Output.Keys)
+            }
+            foreach (var outputName in blackBox.Output.Keys)
+            {
+                Discretizers.Add(outputName, new Discretizer(idManager.GenerateId));
                 learningThreads.Add(outputName, CreateLearningThread("output", outputName));
+            }
 
             //Subscribe to start event
             this.blackBox.OnStarting += BlackBox_OnStarting;

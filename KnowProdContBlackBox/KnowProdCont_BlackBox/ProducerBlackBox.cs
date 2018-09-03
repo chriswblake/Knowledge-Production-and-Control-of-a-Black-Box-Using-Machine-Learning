@@ -98,53 +98,56 @@ namespace KnowProdContBlackBox
         { 
             Discretizer disc = (Discretizer)sender;
 
-            //Find key
+            //Get producer
             string prodName = discBlackBox.Discretizers.Where(p => p.Value == disc).First().Key; //This is not a fast method and should be replaced someday.
-
-            //Find producer
             Producer prod = Producers[prodName];
 
-            //Trigger events
-            OnKnowInstanceRemoving?.Invoke(this, new KnowInstanceRemovingEventArgs(prodName, prod.Get(e.OrigBinLow.BinID)));
-            OnKnowInstanceRemoving?.Invoke(this, new KnowInstanceRemovingEventArgs(prodName, prod.Get(e.OrigBinHigh.BinID)));
+            //Find KnowInstances
+            KnowInstance origKnowInstanceLow = prod.Get(e.OrigBinLow.BinID); 
+            KnowInstance origKnowInstanceHigh = prod.Get(e.OrigBinLow.BinID);
 
-            //Remove old items
+            //Trigger Remove Self events
+            origKnowInstanceLow.RemoveSelf();
+            origKnowInstanceHigh.RemoveSelf();
+
+            //Trigger events
+            //OnKnowInstanceRemoving?.Invoke(this, new KnowInstanceRemovingEventArgs(prodName, origKnowInstanceLow));
+            //OnKnowInstanceRemoving?.Invoke(this, new KnowInstanceRemovingEventArgs(prodName, origKnowInstanceHigh));
+
+            //Remove old KnowInstance items
             prod.Remove(e.OrigBinLow.BinID);
             prod.Remove(e.OrigBinHigh.BinID);
+            RemovedKnowInstances.Add(origKnowInstanceLow.ID.ToString());
+            RemovedKnowInstances.Add(origKnowInstanceHigh.ID.ToString());
 
-            //Create new item
+            //Create new KnowInstance item
             prod.Add(e.NewBin.BinID, e.NewBin);
         }
         private void Discretizer_OnSplitBin(object sender, Discretizer.SplitBinEventArgs e)
         {
             Discretizer disc = (Discretizer)sender;
 
-            //Find key
-            string key = discBlackBox.Discretizers.Where(p => p.Value == disc).First().Key; //This is not a fast method and should be replaced someday.
-
             //Find producer
-            Producer prod = Producers[key];
+            string prodName = discBlackBox.Discretizers.Where(p => p.Value == disc).First().Key; //This is not a fast method and should be replaced someday.
+            Producer prod = Producers[prodName];
 
-            //Remove old items
+            //Find KnowInstances
+            KnowInstance origKnowInstance = prod.Get(e.OrigBin.BinID);
+
+            //Trigger Remove Self events
+            origKnowInstance.RemoveSelf();
+
+            //Remove old knowledge instance
             prod.Remove(e.OrigBin.BinID);
+            RemovedKnowInstances.Add(origKnowInstance.ID.ToString());
 
-            //Create new item
+            //Create new items
             prod.Add(e.NewBinLow.BinID, e.NewBinLow);
             prod.Add(e.NewBinHigh.BinID, e.NewBinHigh);
         }
 
-        //Methods - Events
-        public event EventHandler<KnowInstanceRemovingEventArgs> OnKnowInstanceRemoving;
-        public class KnowInstanceRemovingEventArgs :EventArgs
-        {
-            public string ProducerName { get; private set; }
-            public KnowInstance RemovedKnowInstance { get; private set; }
-            public KnowInstanceRemovingEventArgs(string producerName, KnowInstance ki)
-            {
-                this.ProducerName = producerName;
-                this.RemovedKnowInstance = ki;
-            }
-        }
+        public List<string> RemovedKnowInstances { get; set; } = new List<string>();
+
 
         //Methods - Sampling/Learning
         private Dictionary<string, KnowInstance> ConvertToKI(Dictionary<string, Bin> ioState)

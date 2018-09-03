@@ -59,11 +59,11 @@ namespace KnowProdContBlackBox
             add { this.prodBlackBox.OnStarted += value; }
             remove { this.prodBlackBox.OnStarted -= value; }
         }
-        public event EventHandler<ProducerBlackBox.KnowInstanceRemovingEventArgs> OnKnowInstanceRemoving
-        {
-            add { this.prodBlackBox.OnKnowInstanceRemoving += value; }
-            remove { this.prodBlackBox.OnKnowInstanceRemoving -= value; }
-        }
+        //public event EventHandler<ProducerBlackBox.KnowInstanceRemovingEventArgs> OnKnowInstanceRemoving
+        //{
+        //    add { this.prodBlackBox.OnKnowInstanceRemoving += value; }
+        //    remove { this.prodBlackBox.OnKnowInstanceRemoving -= value; }
+        //}
 
         //Constructors
         public Interpreter(ProducerBlackBox prodBlackBox)
@@ -100,7 +100,7 @@ namespace KnowProdContBlackBox
                     _prevIOState = ioState;
 
                     //Wait until next sample time
-                    Thread.Sleep(prodBlackBox.TimeInterval_ms);
+                    Thread.Sleep(prodBlackBox.TimeInterval_ms/2);
                 }
             });
             samplingThread.Name = "InterpreterSampling";
@@ -164,8 +164,6 @@ namespace KnowProdContBlackBox
         }
 
         //Methods - cache
-        private Dictionary<string, KnowInstance> _prevInputState = null;
-        private Dictionary<string, KnowInstance> _prevOutputState = null;
         private Dictionary<string, KnowInstance> _prevIOState = null;
     }
 }

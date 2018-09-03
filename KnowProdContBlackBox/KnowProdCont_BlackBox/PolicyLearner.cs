@@ -35,7 +35,7 @@ namespace KnowProdContBlackBox
             this.interpreter.OnAddedToMemory += Interpreter_OnAddedToMemory;
 
             //As knowledge items are removed, remove them from the policy
-            this.interpreter.OnKnowInstanceRemoving += Interpreter_OnKnowInstanceRemoving;
+            //this.interpreter.OnKnowInstanceRemoving += Interpreter_OnKnowInstanceRemoving;
         }
 
         //Events
@@ -43,18 +43,18 @@ namespace KnowProdContBlackBox
         {
             Learn(e.inputState, e.outputState);
         }
-        private void Interpreter_OnKnowInstanceRemoving(object sender, ProducerBlackBox.KnowInstanceRemovingEventArgs e)
-        {
-            string ioName = e.ProducerName; //The name of the input or output.
-            KnowInstance ki = e.RemovedKnowInstance; //The piece of removed knowledge.
+        //private void Interpreter_OnKnowInstanceRemoving(object sender, ProducerBlackBox.KnowInstanceRemovingEventArgs e)
+        //{
+        //    string ioName = e.ProducerName; //The name of the input or output.
+        //    KnowInstance ki = e.RemovedKnowInstance; //The piece of removed knowledge.
 
-            //Create equivalent feature value pair
-            FeatureValuePair fvp = new FeatureValuePair(ioName, ki);
+        //    //Create equivalent feature value pair
+        //    FeatureValuePair fvp = new FeatureValuePair(ioName, ki);
 
-            //Remove from all policies //Slow: this should be parallelized
-            foreach (Policy thePolicy in this.Policies.Values)
-                thePolicy.RemoveFeatureValuePair(fvp);
-        }
+        //    //Remove from all policies //Slow: this should be parallelized
+        //    foreach (Policy thePolicy in this.Policies.Values)
+        //        thePolicy.RemoveFeatureValuePair(fvp);
+        //}
 
         //Methods - Learning
         private DataVectorTraining ConvertToDataVectorTraining(Dictionary<string, KnowInstance> input, string outputName, KnowInstance output)
@@ -66,12 +66,12 @@ namespace KnowProdContBlackBox
             {
                 string inputName = i.Key;
                 KnowInstanceWithMetaData ki = new KnowInstanceWithMetaData(i.Value, idManager);
-                dvt.Features.Add(new FeatureValuePairWithImportance(inputName, ki, 0));
+                dvt.AddFeature(inputName, ki, 0);
             }
 
             //Output data becomes Label
             if (output != null)
-                dvt.Label = new FeatureValuePair(outputName, new KnowInstanceWithMetaData(output, idManager));
+                dvt.SetLabel(outputName, new KnowInstanceWithMetaData(output, idManager));
             else
                 dvt.Label = null;
 
