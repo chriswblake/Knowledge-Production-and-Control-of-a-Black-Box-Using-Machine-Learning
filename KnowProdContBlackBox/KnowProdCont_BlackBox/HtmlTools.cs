@@ -1,22 +1,68 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
+﻿using IdManagement;
 using KnowledgeProduction;
-using IdManagement;
+using RLDT;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace KnowProdContBlackBox
 {
     static public class HtmlTools
     {
-        static public string ToHtmlTable(List<KnowInstance> knowInstances)
+        static public string ToHtml(PolicyLearner policyLearner, IdManager idManager)
         {
-            return ToHtmlTable(knowInstances, null);
+            //Generate table of vocabulary
+            string htmlVocabStyle = VocabularyTableStyle();
+            string htmlVocab = "<table>\n";
+            htmlVocab += "<tr>\n";
+            foreach(string ioName in policyLearner.InputNames.Concat(policyLearner.OutputNames))
+            {
+                htmlVocab += "<td style='vertical-align:top;'>\n";
+                htmlVocab += ToVocabularyHtmlTable(policyLearner.GetVocabulary(ioName), idManager, ioName) + "\n";
+                htmlVocab += "</td>\n\n";
+            }
+            htmlVocab += "</tr>\n";
+            htmlVocab += "</table>";
+
+            //Generate html trees for each policy/output
+            var treeSettingsConversion = new RLDT.DecisionTree.TreeSettings() { ShowBlanks = true, ShowSubScores = false };
+            var treeSettingsDisplay = new RLDT.DecisionTree.TreeNode.TreeDisplaySettings() {
+                IncludeDefaultTreeStyling = false,
+                ValueDisplayProperty = "IdName",
+                LabelDisplayProperty = "IdName" };
+            string htmlTreeStyle = RLDT.DecisionTree.TreeNode.DefaultStyling;
+            string htmlTrees = "";
+            foreach (var p in policyLearner.Policies)
+            {
+                string policyName = p.Key; //OutputName
+                Policy thePolicy = p.Value;
+                htmlTrees += "</br>\n";
+                htmlTrees += "</br>\n";
+                htmlTrees += thePolicy.ToDecisionTree(treeSettingsConversion).ToHtmlTree(treeSettingsDisplay, policyName);
+            }
+
+            //Combine together
+            string html = "";
+            html += htmlVocabStyle;
+            html += htmlTreeStyle;
+            html += htmlVocab;
+            html += htmlTrees;
+
+            return html;
         }
-        static public string ToHtmlTable(List<KnowInstance> knowInstances, IdManager idManager)
+
+
+        static public string ToVocabularyHtmlTable(List<KnowInstance> knowInstances, string title)
+        {
+            return ToVocabularyHtmlTable(knowInstances, null, title);
+        }
+        static public string ToVocabularyHtmlTable(List<KnowInstance> knowInstances, IdManager idManager, string title)
         {
             string s = "";
+            s += "<div class='Vocabulary'>\n";
             s += "<table border='1'>\n";
+
+            //Title
+            s += "<tr><th colspan='1000' class='title'>" + title+"</th></tr>\n";
 
             //Header row
             s += "<tr>";
@@ -45,8 +91,38 @@ namespace KnowProdContBlackBox
             }
 
             s += "</table>\n";
+            s += "</div>\n";
 
             return s;
         }
+        static public string VocabularyTableStyle()
+        {
+            return @"
+    <style>
+    div.Vocabulary table
+    {
+        border-collapse: collapse;
+        padding: 0px;
+        margin: 0px;
+        font: 8pt arial, sans-serif;
+        border: 1px solid #AAAAAA
     }
+    div.Vocabulary table .title {
+	    border: 1px solid #888888;
+	    background-color: #CCCCCC;
+    }
+    div.Vocabulary table th {
+	    border: 1px solid #AAAAAA;
+            font-weight: bold;
+	    padding: 3px;
+    }
+    div.Vocabulary table td{
+	    border: 1px solid #AAAAAA;
+	    padding: 3px;
+    }
+    </style>
+        ";
+        }
+    }
+    
 }

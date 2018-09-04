@@ -17,6 +17,20 @@ namespace KnowProdContBlackBox
 
         //Properties
         public Dictionary<string, Policy> Policies = new Dictionary<string, Policy>();
+        public List<string> InputNames
+        {
+            get
+            {
+                return interpreter.InputNames;
+            }
+        }
+        public List<string> OutputNames
+        {
+            get
+            {
+                return interpreter.OutputNames;
+            }
+        }
 
         //Constructor
         public PolicyLearner(Interpreter interpreter, IdManager idManager)
@@ -63,6 +77,12 @@ namespace KnowProdContBlackBox
                 policy.RemoveStatesWithFeature(fvp);
                 policy.RemoveQueriesWithFeature(fvp);
             }
+        }
+
+        //Methods - Usage
+        public List<KnowInstance> GetVocabulary(string ioName)
+        {
+            return this.interpreter.GetVocabulary(ioName);
         }
 
         //Methods - Learning

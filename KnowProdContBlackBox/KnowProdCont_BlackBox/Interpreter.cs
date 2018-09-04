@@ -76,6 +76,10 @@ namespace KnowProdContBlackBox
         }
 
         //Methods
+        public List<KnowInstance> GetVocabulary(string ioName)
+        {
+            return prodBlackBox.Producers[ioName].KnowInstances.Values.ToList();
+        }
         private void ProdBlackBox_OnStarting(object sender, EventArgs e)
         {
             samplingThread.Start();
