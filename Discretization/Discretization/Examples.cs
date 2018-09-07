@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static Discretization.DataGeneration;
 
 namespace Discretization.Examples
 {
@@ -39,7 +40,7 @@ namespace Discretization.Examples
             for (int i = 0; i < 10000; i++)
             {
                 //Generate a noisy value for each entry then randomize the order.
-                List<double> x_noisy = DiscretizerExamples.GenerateNoisyData(x_crisp, maxNoise, 1).OrderBy(p => rand.NextDouble()).ToList();
+                List<double> x_noisy = GenerateNoisyData(x_crisp, maxNoise, 1).OrderBy(p => rand.NextDouble()).ToList();
                 //Add all values to discretizer
                 foreach (double x in x_noisy)
                     disc.GetBin(x);
@@ -57,7 +58,7 @@ namespace Discretization.Examples
             for (int i = 0; i < 10000; i++)
             {
                 //Generate a noisy value for each entry then randomize the order.
-                List<double> x_noisy = DiscretizerExamples.GenerateNoisyData(x_crisp, maxNoise, 1).OrderBy(p => rand.NextDouble()).ToList();
+                List<double> x_noisy = GenerateNoisyData(x_crisp, maxNoise, 1).OrderBy(p => rand.NextDouble()).ToList();
                 //Add all values to discretizer
                 foreach (double x in x_noisy)
                     disc.GetBin(x);
@@ -65,36 +66,6 @@ namespace Discretization.Examples
             }
 
             return disc;
-        }
-        //Methods
-        public static List<double> GenerateNoisyData(List<int> origValues, double maxNoise, int numPerOrigValue)
-        {
-            return GenerateNoisyData(origValues.ConvertAll<double>(x => (double)x), maxNoise, numPerOrigValue);
-        }
-        public static List<double> GenerateNoisyData(List<double> origValues, double maxNoise, int numPerOrigValue)
-        {
-            //Create list of values with noise
-            List<double> x_noisy = new List<double>();
-            for (int i = 0; i < numPerOrigValue; i++)
-            {
-                foreach (double x in origValues)
-                {
-                    double factor = SampleGaussian(rand, 0, 1.0 / 6.0); //Generates a value between 0 and 1. We know that 6 sigma covers 99.999999% of values. So, 1/6 means 0 to 1.
-                    x_noisy.Add(x + factor * maxNoise);
-                }
-            }
-
-            return x_noisy;
-        }
-        public static double SampleGaussian(Random random, double mean, double stddev)
-        {
-            // The method requires sampling from a uniform random of (0,1]
-            // but Random.NextDouble() returns a sample of [0,1).
-            double x1 = 1 - random.NextDouble();
-            double x2 = 1 - random.NextDouble();
-
-            double y1 = Math.Sqrt(-2.0 * Math.Log(x1)) * Math.Cos(2.0 * Math.PI * x2);
-            return y1 * stddev + mean;
         }
     }
 }
