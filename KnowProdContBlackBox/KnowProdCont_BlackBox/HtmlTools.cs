@@ -27,8 +27,8 @@ namespace KnowProdContBlackBox
             var treeSettingsConversion = new RLDT.DecisionTree.TreeSettings() { ShowBlanks = true, ShowSubScores = false };
             var treeSettingsDisplay = new RLDT.DecisionTree.TreeNode.TreeDisplaySettings() {
                 IncludeDefaultTreeStyling = false,
-                ValueDisplayProperty = "IdName",
-                LabelDisplayProperty = "IdName" };
+                ValueDisplayProperty = "Name",
+                LabelDisplayProperty = "Name" };
             string htmlTreeStyle = RLDT.DecisionTree.TreeNode.DefaultStyling;
             string htmlTrees = "";
             foreach (var p in policyLearner.Policies)
@@ -72,8 +72,11 @@ namespace KnowProdContBlackBox
             s += "<th>Content</th>";
             s += "</tr>\n";
 
-            //Sort knowInstances by ID
-            knowInstances = knowInstances.OrderBy(p => p.ID).ToList();
+            //Sort knowInstances by name or ID
+            if(idManager != null)
+                knowInstances = knowInstances.OrderBy(p => new KnowInstanceWithMetaData(p, idManager).Name).ToList();
+            else
+                knowInstances = knowInstances.OrderBy(p => p.ID).ToList();
 
             //Content rows
             foreach (KnowInstance k in knowInstances)
