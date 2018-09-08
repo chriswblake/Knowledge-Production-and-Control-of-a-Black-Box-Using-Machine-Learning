@@ -10,6 +10,8 @@ using static Discretization.DataGeneration;
 using KnowledgeProduction;
 using IdManagement;
 using RLDT;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace KnowProdContBlackBox.Experiments
 {
@@ -193,5 +195,200 @@ namespace KnowProdContBlackBox.Experiments
 
             return;
         }
+
+        [Theory]
+        //[InlineData(5)]
+        //[InlineData(10)]
+        //[InlineData(15)]
+        //[InlineData(20)]
+        //[InlineData(25)]
+        //[InlineData(30)]
+        //[InlineData(35)]
+        [InlineData(40)]
+        public void TrigFunctions(int passes)
+        {
+            double angleInterval = 1;
+
+            List<double> angles = new List<double> {};
+            for (double r = 0; r < 180; r += angleInterval)
+                angles.Add(r);
+            IdManager idManager = new IdManager();
+            BlackBox trigBlackBox = new BlackBoxModeling.Samples.TrigFunctions() { TimeInterval_ms = 10 };
+            DiscreteBlackBox discBlackBox = new DiscreteBlackBox(trigBlackBox, idManager);
+            ProducerBlackBox prodBlackBox = new ProducerBlackBox(discBlackBox, idManager);
+            Interpreter interpreter = new Interpreter(prodBlackBox) { MemorySize = passes * 2 };
+            PolicyLearner policyLearner = new PolicyLearner(interpreter, idManager);
+            Random rand = new Random();
+            trigBlackBox.Start();
+
+            #region Train
+            for (int i = 0; i < passes; i++)
+            {
+                //Change input
+                List<double> angles_noisy = GenerateNoisyData(angles, 0.001, 1).OrderBy(p => rand.NextDouble()).ToList();
+                foreach(double angle in angles_noisy)
+                {
+                    for (int j = 0; j < 1; j++)
+                    { 
+                        trigBlackBox.Input["angle"] = angle;
+
+                        //Wait until next sample time
+                        Thread.Sleep(trigBlackBox.TimeInterval_ms);
+                    }
+                }
+            }
+            #endregion
+
+            //Get Discretizers and Producers
+            var discAngle = discBlackBox.Discretizers["angle"];
+            var discSin = discBlackBox.Discretizers["sin"];
+            var discCos = discBlackBox.Discretizers["cos"];
+            var discTan = discBlackBox.Discretizers["tan"];
+            var prodAngle = prodBlackBox.Producers["angle"];
+            var prodSin = prodBlackBox.Producers["sin"];
+            var prodCos = prodBlackBox.Producers["cos"];
+            var prodTan = prodBlackBox.Producers["tan"];
+            Policy policySin = policyLearner.Policies["sin"];
+            Policy policyCos = policyLearner.Policies["cos"];
+            Policy policyTan = policyLearner.Policies["tan"];
+
+            //Check if training was sucessfull
+            //Assert.Equal(4, disc1.Bins.Count);
+            //Assert.Equal(4, disc2.Bins.Count);
+            //Assert.Equal(4, discand.Bins.Count);
+            //Assert.Equal(4, discor.Bins.Count);
+            //Assert.Equal(4, discxor.Bins.Count);
+            //Assert.Equal(4, discxor.Bins.Count);
+            //Assert.InRange(prod1.KnowInstances.Count, 8, 10);
+            //Assert.InRange(prod2.KnowInstances.Count, 8, 10);
+            //Assert.InRange(prodand.KnowInstances.Count, 8, 10);
+            //Assert.InRange(prodor.KnowInstances.Count, 8, 10);
+            //Assert.InRange(prodxor.KnowInstances.Count, 8, 10);
+
+            //Name Entities by their average
+            foreach(Bin theBin in discAngle.Bins)
+                idManager.SetName(theBin.BinID, theBin.Average.ToString("N2"));
+            foreach (Bin theBin in discSin.Bins)
+                idManager.SetName(theBin.BinID, theBin.Average.ToString("N2"));
+            foreach (Bin theBin in discCos.Bins)
+                idManager.SetName(theBin.BinID, theBin.Average.ToString("N2"));
+            foreach (Bin theBin in discTan.Bins)
+                idManager.SetName(theBin.BinID, theBin.Average.ToString("N2"));
+
+            //Calculate predicted values and error
+            Dictionary<double, Dictionary<string, double>> compResults = new Dictionary<double, Dictionary<string, double>>();
+            Dictionary<string, double> trigEntryTemplate = new Dictionary<string, double>();
+            trigEntryTemplate.Add("sin", double.NaN);
+            trigEntryTemplate.Add("cos", double.NaN);
+            trigEntryTemplate.Add("tan", double.NaN);
+            trigEntryTemplate.Add("sinPred", double.NaN);
+            trigEntryTemplate.Add("cosPred", double.NaN);
+            trigEntryTemplate.Add("tanPred", double.NaN);
+            trigEntryTemplate.Add("sinError", double.NaN);
+            trigEntryTemplate.Add("cosError", double.NaN);
+            trigEntryTemplate.Add("tanError", double.NaN);
+            for (double angle=0; angle <= 180; angle += angleInterval)
+            {
+                //Create entry in dictionaries
+                compResults.Add(angle, new Dictionary<string, double>(trigEntryTemplate));
+                double radians = angle / 180 * Math.PI;
+
+                //Get real values
+                compResults[angle]["sin"] = Math.Sin(radians);
+                compResults[angle]["cos"] = Math.Cos(radians);
+                compResults[angle]["tan"] = Math.Tan(radians);
+
+                //Convert angle to knowledge instance
+                Bin binAngle = discAngle.GetBin(angle);
+                KnowInstance ki = prodAngle.Get(binAngle.BinID);
+
+                #region Get predicted values
+                DataVector dv = new DataVector(new string[] {"angle"}, new object[] {ki});
+                //Sin
+                try
+                {
+                    KnowInstanceValue predKi_sin = (KnowInstanceValue) ((KnowInstanceWithMetaData)policySin.Classify_ByPolicy(dv, false)).InnerKnowInstance;
+                    Bin predBinSin = (Bin)predKi_sin.Content;
+                    compResults[angle]["sinPred"] = predBinSin.Average;
+                }
+                catch { }
+                //Cos
+                try
+                {
+                    KnowInstanceValue predKi_cos = (KnowInstanceValue)((KnowInstanceWithMetaData)policyCos.Classify_ByPolicy(dv, false)).InnerKnowInstance;
+                    Bin predBinCos = (Bin)predKi_cos.Content;
+                    compResults[angle]["cosPred"] = predBinCos.Average;
+                }
+                catch { }
+                //Tan
+                try
+                {
+                    KnowInstanceValue predKi_tan = (KnowInstanceValue)((KnowInstanceWithMetaData)policyTan.Classify_ByPolicy(dv, false)).InnerKnowInstance;
+                    Bin predBinTan = (Bin)predKi_tan.Content;
+                    compResults[angle]["tanPred"] = predBinTan.Average;
+                }
+                catch { }
+                #endregion
+
+                //Calculate error
+                compResults[angle]["sinError"] = compResults[angle]["sin"] - compResults[angle]["sinPred"];
+                compResults[angle]["cosError"] = compResults[angle]["cos"] - compResults[angle]["cosPred"];
+                compResults[angle]["tanError"] = compResults[angle]["tan"] - compResults[angle]["tanPred"];
+            }
+
+            //Save error results to csv
+            List<string> errorResults = new List<string>();
+            errorResults.Add("angle,sin,cos,tan,Predicted Sin,Predicted Cos,Predicted Tan, Error Sin, Error Cos, Error Tan");
+            foreach(var prediction in compResults)
+            {
+                double angle = prediction.Key;
+                string row = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
+                    angle,
+                    compResults[angle]["sin"],
+                    compResults[angle]["cos"],
+                    compResults[angle]["tan"],
+                    
+                    compResults[angle]["sinPred"],
+                    compResults[angle]["cosPred"],
+                    compResults[angle]["tanPred"],
+
+                    compResults[angle]["sinError"],
+                    compResults[angle]["cosError"],
+                    compResults[angle]["tanError"]
+                    );
+                errorResults.Add(row);
+            }
+            File.WriteAllLines(SavePath(passes + "_ErrorResults.csv"), errorResults.ToArray());
+
+            //Save training results to csv
+            File.WriteAllLines(SavePath(passes + "_angle.csv"), ToStringArray(prodAngle.KnowInstances.Values.ToList(), idManager));
+            File.WriteAllLines(SavePath(passes + "_sin.csv"), ToStringArray(prodSin.KnowInstances.Values.ToList(), idManager));
+            File.WriteAllLines(SavePath(passes + "_cos.csv"), ToStringArray(prodCos.KnowInstances.Values.ToList(), idManager));
+            File.WriteAllLines(SavePath(passes + "_tan.csv"), ToStringArray(prodTan.KnowInstances.Values.ToList(), idManager));
+
+            //Convert policies to html and save to file
+            string htmlTree = HtmlTools.ToHtml(policyLearner, idManager);
+            File.WriteAllText(SavePath(passes + "_decision_tree.html"), htmlTree);
+
+            return;
+        }
+
+        public string[] ToStringArray(List<KnowInstance> knowInstances, IdManager idManager)
+        {
+            List<string> csv = new List<string>();
+            csv.Add("ID,Name,Content");
+            foreach(KnowInstance ki in knowInstances)
+            {
+                KnowInstanceWithMetaData kim = new KnowInstanceWithMetaData(ki, idManager);
+                csv.Add(string.Format("{0},\"{1}\",\"{2}\"", kim.ID, kim.Name, ki.ContentToString()));
+            }
+
+            return csv.ToArray();
+        }
+        private string SavePath(string fileName)
+        {
+            return Path.Combine(this.ResultsDir, fileName);
+        }
+        
     }
 }
