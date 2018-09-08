@@ -14,7 +14,7 @@ namespace BlackBoxModeling.Samples
             this.Name = "Trig Functions";
 
             //Define inputs
-            AddInput("x");
+            AddInput("angle");
 
             //Define outputs
             AddOutput("sin");
@@ -32,9 +32,10 @@ namespace BlackBoxModeling.Samples
             var o = Output;
 
             //Define relationship between outputs and inputs
-            o["sin"] = Math.Sin(Convert.ToDouble(i["x"]));
-            o["cos"] = Math.Cos(Convert.ToDouble(i["x"]));
-            o["tan"] = Math.Tan(Convert.ToDouble(i["x"]));
+            double radians = Convert.ToDouble(i["angle"])/180*Math.PI;
+            o["sin"] = Math.Sin(radians);
+            o["cos"] = Math.Cos(radians);
+            o["tan"] = Math.Tan(radians);
         }
     }
 }
