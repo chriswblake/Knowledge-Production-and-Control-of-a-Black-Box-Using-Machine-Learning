@@ -7,11 +7,14 @@ namespace BlackBoxModeling.Samples
     public class RoboticArm : BlackBox
     {
         //Fields
-        const double LENGTH1 = 300; //mm
-        double theta1 = 135; //degrees (45 to 180)
-        double length2 = 150; //mm (100 to 300)
-        double theta3 = 135; //degrees (90 to 270)
-        const double LENGTH3 = 50; //mm
+        const double LENGTH1 = 300;     //mm
+        const double MOTORCONST1 = 50;  //deg/(sec*V)
+        double theta1 = 135;            //deg, range=45 to 180
+        const double MOTORCONST2 = 50;  //mm/(sec*V)
+        double length2 = 150;           //mm, range=100 to 300
+        const double MOTORCONST3 = 50;  //deg/(sec*V)
+        double theta3 = 135;            //deg, range=90 to 270
+        const double LENGTH3 = 50;      //mm
         double x = 0;
         double y = 0;
 
@@ -46,21 +49,21 @@ namespace BlackBoxModeling.Samples
             double voltageMotor3 = Convert.ToDouble(i["Motor3"]);
 
             //Update theta1
-            theta1 = theta1 + (0.1 * voltageMotor1);
+            theta1 = theta1 + (MOTORCONST1 * this.TimeInterval_ms * voltageMotor1 );
             if (theta1 <= 45)
                 theta1 = 45;
             else if (theta1 >= 180)
                 theta1 = 180;
 
             //Update length 2
-            length2 = length2 + (0.1 * voltageMotor2);
+            length2 = length2 + (MOTORCONST2 * this.TimeInterval_ms * voltageMotor2);
             if (length2 <= 100)
                 length2 = 100;
             else if (length2 >= 300)
                 length2 = 300;
 
             //Update theta3
-            theta3 = theta3 + (0.1 * voltageMotor1);
+            theta3 = theta3 + (MOTORCONST3 * this.TimeInterval_ms * voltageMotor1);
             if (theta3 <= 90)
                 theta3 = 90;
             else if (theta3 >=270)
