@@ -455,6 +455,89 @@ namespace KnowProdContBlackBox.Experiments
             return;
         }
 
+        [Theory]
+        [InlineData(10)]
+        [InlineData(20)]
+        [InlineData(50)]
+        [InlineData(100)]
+        [InlineData(200)]
+        [InlineData(300)]
+        [InlineData(500)]
+        [InlineData(1000)]
+        public void RoboticArm(int passes)
+        {
+            IdManager idManager = new IdManager();
+            BlackBox robotBlackBox = new BlackBoxModeling.Samples.RoboticArm() { TimeInterval_ms = 10 };
+            DiscreteBlackBox discBlackBox = new DiscreteBlackBox(robotBlackBox, idManager);
+            ProducerBlackBox prodBlackBox = new ProducerBlackBox(discBlackBox, idManager);
+            Interpreter interpreter = new Interpreter(prodBlackBox) { MemorySize = passes * 2 };
+            PolicyLearner policyLearner = new PolicyLearner(interpreter, idManager);
+            Random rand = new Random();
+            robotBlackBox.Start();
+
+            #region Train - turn on each input separately and try values
+            List<double> voltageLevels = new List<double> {
+                 0.0,
+                 5.0,
+                -5.0,
+                10.0,
+               -10.0
+            };
+            int timeStepsToHold = 20;
+            
+            //input 1
+            robotBlackBox.Input["Motor1"] = 0;
+            robotBlackBox.Input["Motor2"] = 0;
+            robotBlackBox.Input["Motor3"] = 0;
+            for (int pass=0; pass<passes; pass++)
+                foreach(double volts in voltageLevels)
+                {
+                    for (int step= 0; step<timeStepsToHold; step++)
+                    { 
+                        robotBlackBox.Input["Motor1"] = volts;
+                        Thread.Sleep(robotBlackBox.TimeInterval_ms);
+                    }
+                }
+            
+            //input 2
+            robotBlackBox.Input["Motor1"] = 0;
+            robotBlackBox.Input["Motor2"] = 0;
+            robotBlackBox.Input["Motor3"] = 0;
+            for (int pass=0; pass<passes; pass++)
+                foreach (double volts in voltageLevels)
+                {
+                    for (int step = 0; step < timeStepsToHold; step++)
+                    {
+                        robotBlackBox.Input["Motor2"] = volts;
+                        Thread.Sleep(robotBlackBox.TimeInterval_ms);
+                    }
+                }
+            
+            //input 3
+            robotBlackBox.Input["Motor1"] = 0;
+            robotBlackBox.Input["Motor2"] = 0;
+            robotBlackBox.Input["Motor3"] = 0;
+            for (int pass=0; pass<passes; pass++)
+                foreach (double volts in voltageLevels)
+                {
+                    for (int step = 0; step < timeStepsToHold; step++)
+                    {
+                        robotBlackBox.Input["Motor3"] = volts;
+                        Thread.Sleep(robotBlackBox.TimeInterval_ms);
+                    }
+                }
+            #endregion
+
+            //Name values by their average
+            foreach(Discretizer disc in discBlackBox.Discretizers.Values)
+                foreach (Bin theBin in disc.Bins)
+                    idManager.SetName(theBin.BinID, theBin.Average.ToString("N2"));
+
+            //Convert policies to html and save to file
+            string htmlTree = HtmlTools.ToHtml(policyLearner, idManager);
+            File.WriteAllText(SavePath(passes + "_decision_tree.html"), htmlTree);
+        }
+
         //Methods
         public string[] ToStringArray(List<KnowInstance> knowInstances, IdManager idManager)
         {
