@@ -197,13 +197,13 @@ namespace KnowProdContBlackBox.Experiments
         }
 
         [Theory]
-        //[InlineData(5)]
-        //[InlineData(10)]
-        //[InlineData(15)]
-        //[InlineData(20)]
-        //[InlineData(25)]
-        //[InlineData(30)]
-        //[InlineData(35)]
+        [InlineData(5)]
+        [InlineData(10)]
+        [InlineData(15)]
+        [InlineData(20)]
+        [InlineData(25)]
+        [InlineData(30)]
+        [InlineData(35)]
         [InlineData(40)]
         public void TrigFunctions(int passes)
         {
@@ -373,6 +373,7 @@ namespace KnowProdContBlackBox.Experiments
             return;
         }
 
+        //Methods
         public string[] ToStringArray(List<KnowInstance> knowInstances, IdManager idManager)
         {
             List<string> csv = new List<string>();

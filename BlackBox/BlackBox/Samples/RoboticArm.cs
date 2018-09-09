@@ -8,9 +8,9 @@ namespace BlackBoxModeling.Samples
     {
         //Fields
         const double LENGTH1 = 300; //mm
-        double theta1 = 225; //degrees (180 to 315)
+        double theta1 = 135; //degrees (45 to 180)
         double length2 = 150; //mm (100 to 300)
-        double theta3 = 225; //degrees (90 to 180)
+        double theta3 = 135; //degrees (90 to 270)
         const double LENGTH3 = 50; //mm
         double x = 0;
         double y = 0;
@@ -47,12 +47,12 @@ namespace BlackBoxModeling.Samples
 
             //Update theta1
             theta1 = theta1 + (0.1 * voltageMotor1);
-            if (theta1 <= 180)
+            if (theta1 <= 45)
+                theta1 = 45;
+            else if (theta1 >= 180)
                 theta1 = 180;
-            else if (theta1 >= 315)
-                theta1 = 315;
 
-            //Update theta2
+            //Update length 2
             length2 = length2 + (0.1 * voltageMotor2);
             if (length2 <= 100)
                 length2 = 100;
@@ -61,10 +61,10 @@ namespace BlackBoxModeling.Samples
 
             //Update theta3
             theta3 = theta3 + (0.1 * voltageMotor1);
-            if (theta3 <= 180)
-                theta3 = 180;
-            else if (theta3 >= 315)
-                theta3 = 315;
+            if (theta3 <= 90)
+                theta3 = 90;
+            else if (theta3 >=270)
+                theta3 = 270;
 
             //Update x and y coordinates of end factor
             double theta1abs = 180 + theta1;
