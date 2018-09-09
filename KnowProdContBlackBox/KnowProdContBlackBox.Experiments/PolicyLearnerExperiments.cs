@@ -18,9 +18,16 @@ namespace KnowProdContBlackBox.Experiments
     public class PolicyLearnerExperiments : Experiment
     {
         [Theory]
+        [InlineData(100)]
+        [InlineData(200)]
+        [InlineData(300)]
+        [InlineData(400)]
         [InlineData(500)]
         [InlineData(1000)]
-        [InlineData(1500)]
+        [InlineData(2000)]
+        [InlineData(3000)]
+        [InlineData(4000)]
+        [InlineData(5000)]
         public void LogicOperations(int iterations)
         {
             List<double> bool1 = new List<double> {
@@ -104,17 +111,17 @@ namespace KnowProdContBlackBox.Experiments
             Policy policyxor = policyLearner.Policies["xor"];
 
             //Check if training was sucessfull
-            Assert.Equal(4, disc1.Bins.Count);
-            Assert.Equal(4, disc2.Bins.Count);
-            Assert.Equal(4, discand.Bins.Count);
-            Assert.Equal(4, discor.Bins.Count);
-            Assert.Equal(4, discxor.Bins.Count);
-            Assert.Equal(4, discxor.Bins.Count);
-            Assert.InRange(prod1.KnowInstances.Count, 8, 10);
-            Assert.InRange(prod2.KnowInstances.Count, 8, 10);
-            Assert.InRange(prodand.KnowInstances.Count, 8, 10);
-            Assert.InRange(prodor.KnowInstances.Count, 8, 10);
-            Assert.InRange(prodxor.KnowInstances.Count, 8, 10);
+            //Assert.Equal(4, disc1.Bins.Count);
+            //Assert.Equal(4, disc2.Bins.Count);
+            //Assert.Equal(4, discand.Bins.Count);
+            //Assert.Equal(4, discor.Bins.Count);
+            //Assert.Equal(4, discxor.Bins.Count);
+            //Assert.Equal(4, discxor.Bins.Count);
+            //Assert.InRange(prod1.KnowInstances.Count, 8, 10);
+            //Assert.InRange(prod2.KnowInstances.Count, 8, 10);
+            //Assert.InRange(prodand.KnowInstances.Count, 8, 10);
+            //Assert.InRange(prodor.KnowInstances.Count, 8, 10);
+            //Assert.InRange(prodxor.KnowInstances.Count, 8, 10);
 
             //Name Entities
             #region bool1
@@ -188,10 +195,85 @@ namespace KnowProdContBlackBox.Experiments
             idManager.SetName(xor_SwitchedOn.ID, "False to True");
             #endregion
 
+            //Calculate predicted values and error
+            int numTests = 1000;
+            Dictionary<string, int> countCorrect = new Dictionary<string, int>();
+            countCorrect.Add("and", 0);
+            countCorrect.Add("or", 0);
+            countCorrect.Add("xor", 0);
+            List<KnowInstance> testOptionsBool1 = new List<KnowInstance>() { bool1_On, bool1_Off };
+            List<KnowInstance> testOptionsBool2 = new List<KnowInstance>() { bool2_On, bool2_Off };
+            for (int i=0; i<numTests; i++)
+            {
+                //Run variable
+                Dictionary<string, object> runDetails = new Dictionary<string, object>();
+                runDetails.Add("andActual", null);
+                runDetails.Add("orActual", null);
+                runDetails.Add("xorActual", null);
+                runDetails.Add("andPred", null);
+                runDetails.Add("orPred", null);
+                runDetails.Add("xorPred", null);
+
+                //Pick a random bool1 and bool2
+                KnowInstance testBool1 = testOptionsBool1[rand.Next(0, 2)];
+                KnowInstance testBool2 = testOptionsBool2[rand.Next(0, 2)];
+
+                //Calculate correct response
+                if (testBool1.Equals(bool1_On) && testBool2.Equals(bool2_On))
+                {
+                    runDetails["andActual"] = and_On;
+                    runDetails["orActual"] = or_On;
+                    runDetails["xorActual"] = xor_Off;
+                }
+                else if (testBool1.Equals(bool1_Off) && testBool2.Equals(bool2_On))
+                {
+                    runDetails["andActual"] = and_Off;
+                    runDetails["orActual"] = or_On;
+                    runDetails["xorActual"] = xor_On;
+                }
+                else if (testBool1.Equals(bool1_On) && testBool2.Equals(bool2_Off))
+                {
+                    runDetails["andActual"] = and_Off;
+                    runDetails["orActual"] = or_On;
+                    runDetails["xorActual"] = xor_On;
+                }
+                else if (testBool1.Equals(bool1_Off) && testBool2.Equals(bool2_Off))
+                {
+                    runDetails["andActual"] = and_Off;
+                    runDetails["orActual"] = or_Off;
+                    runDetails["xorActual"] = xor_Off;
+                }
+
+                //Create datavector
+                DataVector dv = new DataVector(new string[] {"bool1", "bool2" }, new object[] { testBool1, testBool2 });
+
+                //Use the policy to make a prediction
+                runDetails["andPred"] = ((KnowInstanceWithMetaData) policyLearner.Policies["and"].Classify_ByPolicy(dv)).InnerKnowInstance;
+                runDetails["orPred"] = ((KnowInstanceWithMetaData) policyLearner.Policies["or"].Classify_ByPolicy(dv)).InnerKnowInstance;
+                runDetails["xorPred"] = ((KnowInstanceWithMetaData) policyLearner.Policies["xor"].Classify_ByPolicy(dv)).InnerKnowInstance;
+
+                //Calculate how many were correct
+                if (runDetails["andActual"].Equals(runDetails["andPred"]))
+                    countCorrect["and"] += 1;
+                if (runDetails["orActual"].Equals(runDetails["orPred"]))
+                    countCorrect["or"] += 1;
+                if (runDetails["xorActual"].Equals(runDetails["xorPred"]))
+                    countCorrect["xor"] += 1;
+            }
+            Dictionary<string, double> percentError = new Dictionary<string, double>();
+            percentError.Add("and", 1.0 - Convert.ToDouble(countCorrect["and"]) / numTests);
+            percentError.Add("or", 1.0 - Convert.ToDouble(countCorrect["or"]) / numTests);
+            percentError.Add("xor", 1.0 - Convert.ToDouble(countCorrect["xor"]) / numTests);
+
+            //Save to text file
+            List<string> errorText = new List<string>();
+            foreach (var p in percentError)
+                errorText.Add(string.Format("{0},{1}", p.Key, p.Value));
+            File.WriteAllLines(SavePath(iterations + "_MSE.txt"), errorText);
+
             //Convert policies to html and save to file
             string htmlTree = HtmlTools.ToHtml(policyLearner, idManager);
-            string savePath = Path.Combine(this.ResultsDir, "LogicOperations", iterations + ".html");
-            File.WriteAllText(savePath, htmlTree);
+            File.WriteAllText(SavePath(iterations + ".html"), htmlTree);
 
             return;
         }
