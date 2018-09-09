@@ -1,6 +1,10 @@
 ## Latex
 main.synctex.gz
+main_polytech.synctex.gz
+main_leibniz.synctex.gz
 main.pdf
+main_polytech.pdf
+main_leibniz.pdf
 
 ## Visual Studio Code
 settings.json
